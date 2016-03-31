@@ -1,0 +1,8 @@
+digraph "com.crystalwink.crystalscommon.Segment.Segment"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystalscommon.\lSegment.Segment\n|+ segmentPoints\l+ xPointArray\l+ yPointArray\l+ points\l+ colour\l+ xPointArrayPrint\l+ yPointArrayPrint\l+ zPointArrayPrint\l+ nneighbours\l+ nConnectedWires\l~ MAX_NEIGHBOURS\l|+ addWireConnect()\l+ setActiveWire()\l+ selectActiveWire()\l+ hasActiveWire()\l+ getActiveWireLength()\l+ getActiveWire()\l+ getRandomWire()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node2 -> Node1 [color="grey25",fontsize="10",style="solid",label=" +connectedWires" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node2 [label="{com.crystalwink.crystalscommon.\lWire.Wire\n|+ fromTile\l+ fromSegment\l+ toTile\l+ toSegment\l+ wireLength\l+ wireActive\l|+ neighbourId()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystalscommon_1_1Wire_1_1Wire.html"];
+}

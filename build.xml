@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<!-- By default, only the Clean and Build commands use this build script. -->
+<!-- Commands such as Run, Debug, and Test only use this build script if -->
+<!-- the Compile on Save feature is turned off for the project. -->
+<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
+<!-- in the project's Project Properties dialog box.-->
+<project name="Crystals" default="default" basedir=".">
+    <description>Builds, tests, and runs the project Crystals.</description>
+    <!--
+    <import file="nbproject/build-impl.xml"/>
+    <import file="nbproject/profiler-build-impl.xml"/>
+    -->
+    <!--
+
+    There exist several targets which are by default empty and which can be 
+    used for execution of your tasks. These targets are usually executed 
+    before and after some main targets. They are: 
+
+      -pre-init:                 called before initialization of project properties
+      -post-init:                called after initialization of project properties
+      -pre-compile:              called before javac compilation
+      -post-compile:             called after javac compilation
+      -pre-compile-single:       called before javac compilation of single file
+      -post-compile-single:      called after javac compilation of single file
+      -pre-compile-test:         called before javac compilation of JUnit tests
+      -post-compile-test:        called after javac compilation of JUnit tests
+      -pre-compile-test-single:  called before javac compilation of single JUnit test
+      -post-compile-test-single: called after javac compilation of single JUunit test
+      -pre-jar:                  called before JAR building
+      -post-jar:                 called after JAR building
+      -post-clean:               called after cleaning build products
+
+    (Targets beginning with '-' are not intended to be called on their own.)
+
+    Example of inserting an obfuscator after compilation could look like this:
+
+        <target name="-post-compile">
+            <obfuscate>
+                <fileset dir="${build.classes.dir}"/>
+            </obfuscate>
+        </target>
+
+    For list of available properties check the imported 
+    nbproject/build-impl.xml file. 
+
+
+    Another way to customize the build is by overriding existing main targets.
+    The targets of interest are: 
+
+      -init-macrodef-javac:     defines macro for javac compilation
+      -init-macrodef-junit:     defines macro for junit execution
+      -init-macrodef-debug:     defines macro for class debugging
+      -init-macrodef-java:      defines macro for class execution
+      -do-jar-with-manifest:    JAR building (if you are using a manifest)
+      -do-jar-without-manifest: JAR building (if you are not using a manifest)
+      run:                      execution of project 
+      -javadoc-build:           Javadoc generation
+      test-report:              JUnit report generation
+
+    An example of overriding the target for project execution could look like this:
+
+        <target name="run" depends="Crystals-impl.jar">
+            <exec dir="bin" executable="launcher.exe">
+                <arg file="${dist.jar}"/>
+            </exec>
+        </target>
+
+    Notice that the overridden target depends on the jar target and not only on 
+    the compile target as the regular run target does. Again, for a list of available 
+    properties which you can use, check the target you are overriding in the
+    nbproject/build-impl.xml file. 
+
+    -->
+	
+    <!-- Sets variables which can later be used. -->
+    <!-- The value of a property is accessed via ${} -->
+    <property name="src.dir" location="src" /> 
+    <property name="test.dir" location="${src.dir}/test" /> 
+    <property name="test_lib.dir" location="test/lib" /> 
+    <property name="build.dir" location="build" />
+    <property name="bin.dir" location="bin" />
+    <property name="docs.dir" location="docs/JavaDocs" /> <!-- 25 -->
+    <property name="jars.dir" location="lib" />
+    <property name="dependancy_jars.dir" location="jars" />
+    <property name="dist.dir" location="build/dist" />
+	<property name="dist_bin.dir" location="${dist.dir}/bin" />
+    <property name="dist.jar" value="Crystals.jar" /> 
+    <property name="release.package.tar" value="crystals_1f" />
+    <property name="source.package.tar" value="crystals_1f_src" />
+	<property name="build.classes.dir" value="${build.dir}" />
+    	
+	   <!-- Compile classpath. -->
+	    <path id="compile.classpath">
+	        <fileset dir="${test_lib.dir}">
+	            <include name="**/junit.jar" />
+	            <include name="**/hamcrest-core-3.1.jar" /> 
+	        </fileset>
+	        <fileset dir="${build.dir}">
+	            <include name="**/*.class" />
+	        </fileset>
+
+	        <fileset dir="${dependancy_jars.dir}"> 
+	            <include name="jars/*.jar" /> 
+	        </fileset>
+	        
+	    </path>
+
+
+    <!-- JUnit classpath. -->
+    <path id="test.classpath">
+        <pathelement location="."/>
+        <pathelement location="${build.dir}/com/crystalwink/crystals"/>
+        <pathelement location="${test_lib.dir}" />
+        <pathelement location="${build.dir}/com/crystalwink/crystals"/>
+        <pathelement location="${build.dir}"/>
+        <pathelement location="${bin.dir}/com/crystalwink/crystals"/>
+        <pathelement location="${test.dir}/com/crystalwink/crystals"/>
+          
+        <fileset dir="${test_lib.dir}">
+            <include name="**/junit.jar" />
+            <include name="**/hamcrest-core-3.1.jar" /> 
+        </fileset>
+        <fileset dir="${src.dir}">
+             <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="${jars.dir}">
+            <include name="**/*.jar" />
+        </fileset>
+        <fileset dir="${dependancy_jars.dir}"> 
+            <include name="jars/*.jar" /> 
+        </fileset>
+
+        <!--
+        From the command line
+        export JUNIT_HOME="~/workspace/Crystals/test/lib/"
+        export CLASSPATH=$JUNIT_HOME/junit.jar:$JUNIT_HOME/hamcrest-core-3.1.jar:~/workspace/Crystals/build/"
+        java org.junit.runner.JUnitCore test.com.crystalwink.Crystals
+
+        ~/workspace/Crystals/build/com/crystalwink/crystals/
+        ~/workspace/Crystals/lib/com.crystalwink.Crystals.jar
+        ~/workspace/Crystals/src/main/java/
+        -->
+    </path>
+    
+    
+        <!--
+        ====================
+        CLEAN SECTION
+        ====================
+        -->
+        <!-- Deletes the existing build, docs and dist directory-->
+        <target name="clean">
+            <!--<delete dir="${jars.dir}" verbose="true" includeemptydirs="true" />-->
+            <delete dir="${build.dir}" verbose="true" includeemptydirs="true" />
+            <delete dir="${docs.dir}" verbose="true" />
+            <delete dir="${source.package.tar}" />
+        </target>
+
+        <!--
+        ====================
+        DIRECTORY CREATION SECTION
+        ====================
+        -->
+        <!-- Creates the  build, docs and dist directory-->
+        <target name="makedir">
+            <mkdir dir="${build.dir}" />
+            <mkdir dir="${dist.dir}" />
+            <mkdir dir="${docs.dir}" />
+            <mkdir dir="${jars.dir}" />
+            <mkdir dir="${dist_bin.dir}" />
+        </target>
+
+        <!--
+        ====================
+        COMPILE SECTION
+        ====================
+        -->
+        <!-- Compiles the java code (including the usage of library for JUnit -->
+        <target name="compile" depends="clean, makedir, docs">
+            <description>Compile the Crystals project</description>
+            <echo>compiling the Crystals source files</echo>
+            <javac 
+                srcdir="${src.dir}"
+                destdir="${build.dir}"
+                source="1.7"
+                target="1.7"
+                compiler="javac1.7"
+                encoding="utf-8"
+                includeantruntime="false" >
+                
+                <classpath refid="compile.classpath" />
+
+            </javac>
+        </target>
+
+        <!--
+        ====================
+        JAR BUILDING SECTION
+        ====================
+        -->
+        <target name="createjar" depends="compile">
+            <description>Create the Crystals.jar</description>
+            <echo>creating the Crystals.jar library</echo>
+            <delete dir="${jars.dir}" verbose="true" includeemptydirs="true" />
+            <!-- <dirname file="${dist.jar}" property="jars.dir" /> -->
+            <!-- <dirname file="${dist.jar}" property="${jars.dir}" /> -->
+            <mkdir dir="${jars.dir}"/>
+            <fileset dir="${build.dir}"/>
+            <fileset dir="${cs_cluster_jars.dir}"/> 
+            <fileset dir="${dependancy_jars.dir}"/> 
+            
+            <jar compress="${jar.compress}" index="${jar.index}" jarfile="${dist.jar}">
+                <fileset dir="${build.dir}"/>
+                  <manifest>
+                    <attribute name="Main-Class" value="com.crystalwink.Crystals"/>
+                  </manifest>
+            </jar>
+            <move file="${dist.jar}" todir="${jars.dir}"/>
+        </target>
+
+    <!--
+    ====================
+    JUNIT TEST SECTION
+    ====================
+    -->
+    <!-- Execute the JUnit tests -->
+    <target name="junittest" depends="compiletests">
+
+        <description>Run the JUnit tests on Crystals project</description>
+        <echo>Testing Crystals source via JUnit</echo>
+            
+        <junit printsummary="yes" haltonfailure="no" showoutput="yes">
+            <formatter type="xml"/>
+
+            <classpath refid="test.classpath" />
+
+            <batchtest fork="no">
+                <fileset dir="${test.dir}">
+                    <include name="test/com/crystalwink/crystals/*Test.java" />
+                </fileset>
+                <fileset dir="${src.dir}">
+                    <include name="com/crystalwink/crystals/*Test.java" />
+                </fileset>
+            </batchtest>
+        </junit>
+
+        
+        <junitreport todir=".">
+            <fileset dir=".">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report todir="." />
+        </junitreport>
+
+    </target>
+
+        <!--
+        ====================
+        JAVADOC BUILDING SECTION
+        ====================
+        -->
+        <target name="docs" depends="makedir">
+            <description>Create documentation files</description>
+            <echo>Creating the Crystals documentation</echo>
+            <javadoc packagenames="src" sourcepath="${src.dir}" destdir="${docs.dir}">
+                <!-- Define which files / directory should get included, we include all -->
+                <fileset dir="${src.dir}">
+                    <include name="**/*.java" />
+                </fileset>
+                
+                <classpath refid="compile.classpath" />
+
+            </javadoc>
+        </target>
+
+        <!--
+        ====================
+        PACKAGE and TAR SECTION
+        ====================
+        -->
+        <target name="package" depends="createjar, test">
+            <description>Create release package TAR file</description>
+            <echo>Prepare release files for TAR creation</echo>
+
+            <delete dir="${release.package.tar}" />
+            <delete dir="${source.package.tar}" />
+            <mkdir dir="${release.package.tar}" />
+
+            <copy todir="${release.package.tar}">
+                <fileset dir=".">
+                    <include name="**/*tiles*"/>
+                    <include name="**/*pieces*"/>
+                </fileset>
+            </copy>
+
+            <copy todir="${release.package.tar}/lib">
+                <fileset dir="lib">
+                </fileset>
+            </copy>
+
+            <copy todir="${release.package.tar}/lib">
+                <fileset dir=".">
+                   <include name="com.*.jar"/>
+                </fileset>
+            </copy>
+
+        	<!--
+            <copy todir="${release.package.tar}/lib">
+                <fileset dir="jars">
+                   <include name="**/*.jar"/>
+                </fileset>
+            </copy>
+            -->
+
+            
+            <echo>Release Files TAR creation</echo>
+                <tar longfile="gnu" destfile="${release.package.tar}.tar">
+                    <tarfileset dir="${release.package.tar}/.." filemode="755" username="ant" group="ant">
+                        <include name="${release.package.tar}/**"/>
+                    </tarfileset>
+                </tar>
+
+                <move file="${release.package.tar}.tar" todir="${dist.dir}"/>
+
+        
+            <description>Add source files to package and TAR</description>
+            <echo>Prepare source files for TAR creation</echo>
+            <move todir="${source.package.tar}">
+                <fileset dir="${release.package.tar}"/>
+            </move>
+
+            <copy file="build.xml"
+                       todir="${source.package.tar}"
+              />
+
+            <copy todir="${source.package.tar}/src">
+                <fileset dir="src">
+                    <include name="**/*.java"/>
+                </fileset>
+            </copy>
+
+        	<!--
+            <copy todir="${source.package.tar}/docs/JavaDocs">
+                <fileset dir="docs/JavaDocs"/>
+            </copy>
+            -->
+
+            
+            <echo>Source Files TAR creation</echo>
+
+                <tar longfile="gnu" destfile="${source.package.tar}.tar">
+                    <tarfileset dir="${release.package.tar}/.." filemode="755" username="ant" group="ant">
+                        <include name="${release.package.tar}/lib/**"/>
+                    </tarfileset>
+                    <tarfileset dir="${source.package.tar}/.." filemode="755" username="ant" group="ant">
+                        <include name="${source.package.tar}/docs/JavaDocs/**"/>
+                    </tarfileset>
+                    <tarfileset dir="${source.package.tar}/.." filemode="755" username="ant" group="ant">
+                        <include name="${source.package.tar}/src/**"/>
+                    </tarfileset>
+                    <tarfileset dir="${source.package.tar}/.." filemode="755" username="ant" group="ant">
+                        <include name="${source.package.tar}/**"/>
+                    </tarfileset>
+                </tar>
+
+
+                <move file="${source.package.tar}.tar" todir="${dist.dir}"/>
+                
+                <delete dir="${source.package.tar}" />
+        </target>
+        
+    <!--
+    ====================
+    MAIN ENTRY SECTION
+    ====================
+    -->
+    <target name="default" depends="test, createjar, compile, docs, package">
+        <description>Main target</description>
+        <echo>Running main target</echo>
+    </target>
+
+    <!--
+    ====================
+    JUNIT ENTRY SECTION
+    ====================
+    -->
+    <target name="test" depends="junittest">
+        <description>JUnit Test target</description>
+        <echo>Running JUnit test target</echo>
+    </target>
+
+    <!--
+    ====================
+    COMPILE JUNIT SECTION
+    ====================
+    -->
+    <!-- Compiles the java code (including the usage of library for JUnit -->
+    <!-- <target name="compiletests" depends="clean, makedir, compile, createjar"> -->
+    <!-- srcdir="${test.dir}"  -->
+    <target name="compiletests" depends="clean, makedir, compile">
+        <description>Compile the Crystals juint test project</description>
+        <echo>compiling the Crystals junit test source files</echo>
+        
+        <javac 
+            srcdir="${src.dir}"
+            destdir="${build.dir}"
+            source="1.7"
+            target="1.7"
+            compiler="javac1.7"
+            encoding="utf-8"
+            includeantruntime="false" >
+            
+            <classpath refid="test.classpath" />
+
+        </javac>
+    </target>
+
+</project>

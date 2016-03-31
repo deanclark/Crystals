@@ -1,0 +1,6 @@
+digraph "com.crystalwink.crystalscommon.TileAbstract.TileAbstract"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystalscommon.\lTileAbstract.TileAbstract\n||+ TileAbstract()\l+ getId()\l+ setId()\l+ getLbl()\l+ setLbl()\l+ getOrientation()\l+ setOrientation()\l+ getNumberOfEdges()\l+ setNumberOfEdges()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

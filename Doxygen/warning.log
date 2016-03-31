@@ -1,0 +1,44 @@
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:276: warning: multiple use of section label 'sec_5_2', (first occurrence: /home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox, line 270)
+error: Project logo 'AGI.png' specified by PROJECT_LOGO does not exist!
+error: Extra file '../documents/CAT-D_140204ProcessDiagram-v1-3.pdf' specified in HTML_EXTRA_FILES does not exist!
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\Documents'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\deancl'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\My'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\NetBeansProjects'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\Crystals'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\build'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:726: warning: Found unknown command `\classes'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:846: warning: Found unknown command `\NetBeansProjects'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:846: warning: Found unknown command `\Crystals'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:846: warning: Found unknown command `\build'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/Crystal.java:846: warning: Found unknown command `\classes'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/FrameStructure/FrameStructure.java:893: warning: The following parameters of com.crystalwink.crystals.FrameStructure.FrameStructure.resetTile(int row, int col, int LockLevel, boolean overrideNeighbourProtection) are not documented:
+  parameter 'overrideNeighbourProtection'
+/home/dean.clark/workspace/Codility/Crystals/src/com/crystalwink/crystals/FrameStructure/FrameStructure.java:428: warning: The following parameters of com.crystalwink.crystals.FrameStructure.FrameStructure.setEdge(int row, int col, int colour) are not documented:
+  parameter 'colour'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:6: warning: image file logo.jpg is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:47: warning: image file 140204ProcessDiagram-v1-1.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:53: warning: image file CAT-DWebLabCamelRouteProcessingChain2.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:60: warning: image file AgiSiteCrawl-Tool-Init.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:66: warning: image file AgiSiteCrawl-Tool-Ready.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:238: warning: image file AgiSiteCrawl-Tool-Ready.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:321: warning: Found unknown command `\t'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:322: warning: Found unknown command `\t'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:323: warning: Found unknown command `\t'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:488: warning: image file Screenshot-Liferay.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:494: warning: image file Screenshot-Heritrix.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:500: warning: image file Screenshot-Hawtio.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:506: warning: image file Screenshot-Fuseki.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:6: warning: image file logo.jpg is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:47: warning: image file 140204ProcessDiagram-v1-1.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:53: warning: image file CAT-DWebLabCamelRouteProcessingChain2.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:60: warning: image file AgiSiteCrawl-Tool-Init.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:66: warning: image file AgiSiteCrawl-Tool-Ready.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:238: warning: image file AgiSiteCrawl-Tool-Ready.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:321: warning: Found unknown command `\t'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:322: warning: Found unknown command `\t'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:323: warning: Found unknown command `\t'
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:488: warning: image file Screenshot-Liferay.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:494: warning: image file Screenshot-Heritrix.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:500: warning: image file Screenshot-Hawtio.png is not found in IMAGE_PATH: assuming external image.
+/home/dean.clark/workspace/Codility/Crystals/Doxygen/lld.dox:506: warning: image file Screenshot-Fuseki.png is not found in IMAGE_PATH: assuming external image.

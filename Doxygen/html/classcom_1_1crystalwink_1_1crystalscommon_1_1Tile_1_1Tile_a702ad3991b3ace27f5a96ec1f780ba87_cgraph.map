@@ -1,0 +1,4 @@
+<map id="com.crystalwink.crystalscommon.Tile.Tile.checkForEdgeSegments" name="com.crystalwink.crystalscommon.Tile.Tile.checkForEdgeSegments">
+<area shape="rect" id="node3" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1Tile_1_1Tile.html#a915febf91c43c5bb58ec753070c532b4" title="com.crystalwink.crystalscommon.\lTile.Tile.setEdgeOposite" alt="" coords="275,5,496,51"/>
+<area shape="rect" id="node5" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1Tile_1_1Tile.html#ad4b44b49321d5f6032b633cf4ff44de9" title="com.crystalwink.crystalscommon.\lTile.Tile.getEdgeCount" alt="" coords="544,5,765,51"/>
+</map>

@@ -1,0 +1,13 @@
+digraph "com.crystalwink.crystals.FrameStructure.FrameStructure.verifyTile"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="com.crystalwink.crystals.\lFrameStructure.FrameStructure.verifyTile",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="com.crystalwink.crystals.\lFrameStructure.FrameStructure.define\lTileFromFrame",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1FrameStructure.html#a88586cb58a3436e71e004e98b9016e3a"];
+  Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="com.crystalwink.crystals.\lFrameStructure.FrameStructure.compareTiles",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1FrameStructure.html#a45619076ec93c34383dd335e1c53a75c"];
+  Node3 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="com.crystalwink.crystals.\lFrameStructure.FrameStructure.valid\lSegmentRecursion",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1FrameStructure.html#a2197b412404a4627cd67455f365474f9"];
+}

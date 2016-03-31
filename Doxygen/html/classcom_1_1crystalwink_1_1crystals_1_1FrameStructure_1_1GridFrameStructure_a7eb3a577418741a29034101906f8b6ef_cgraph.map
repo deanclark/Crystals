@@ -1,0 +1,5 @@
+<map id="com.crystalwink.crystals.FrameStructure.GridFrameStructure.resetGridFrameEdges" name="com.crystalwink.crystals.FrameStructure.GridFrameStructure.resetGridFrameEdges">
+<area shape="rect" id="node3" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#a2829f70264bf6e96c2fcf10be947dedc" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.set\lColour" alt="" coords="319,5,569,69"/>
+<area shape="rect" id="node7" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#ab5e915dab92790de3aab6d1beebc128a" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.get\lAvailableGridColours" alt="" coords="319,93,569,157"/>
+<area shape="rect" id="node5" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#aa10e9b6a6d97619171f5202e32b7154e" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.is\lColourAvailable" alt="" coords="620,5,863,69"/>
+</map>

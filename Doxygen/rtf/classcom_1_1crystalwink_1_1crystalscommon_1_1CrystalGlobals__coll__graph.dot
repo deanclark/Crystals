@@ -1,0 +1,6 @@
+digraph "com.crystalwink.crystalscommon.CrystalGlobals"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystalscommon.\lCrystalGlobals\n|+ MAX_ROWS\l+ MAX_COLUMNS\l+ MAX_TILES\l+ MAX_WIRES\l+ MAX_NEIGHBOURS\l+ WIRE_LENGTH_TARGET\l+ WIRE_LENGTH_TARGET\l_PROXIMITY\l+ WIRE_LENGTH_INITIAL\l+ MODE_ELASTIC\l+ MODE_FRAME_SCATTER\land 18 more...\l|}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

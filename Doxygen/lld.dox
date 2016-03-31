@@ -1,0 +1,729 @@
+
+
+
+/**
+
+@image html "logo.jpg"
+@mainpage Crystals (256 tile Crypto) - User Documentation 
+@author Dean Clark
+@version
+Draft Crystals 00.00.00.01 (1-Sept-2015) 
+
+
+@section sec_1		1. 	Introduction
+
+	The Crystal system will hereafter be referred to as "the system".
+	
+	This document describes the system, its user interfaces, programming API and the interaction 
+	and integration with other components.
+	
+	Installation of system is described within this document. 
+    
+
+
+@subsection sec_1_1	1.1	Overview
+
+	The system has been implemented to search the content of various web sites for specific text
+	and phrases.  This content is further processed, categorised and scored in terms of cohesion and tension.
+	
+	A stand-alone and Web based interface is available, for the configuration of the search tool.
+	User login is required for both the full and demonstrator search.  This requirement is 
+	necessary to prevent the tool from being used for malicious purposes.  E-mail confirmation 
+	may be used during the registration process to restrict a users account to search a reduced set of domains. 
+
+    Due to the nature of this tool, a scan is scheduled rather than executed immediately.  This allows the software
+     to limit the amount of Internet traffic targeted at each site to prevent performance
+    impact to a third parties site/service and reduce the likelihood of being mistaken as a denial of service style
+     attack during the scan.  This could potentially result in the service being blacklisted and prevent future 
+     mining of the site.
+	
+    Once scheduled the scan will be executed on a remote server rather than the users local machine.  
+	This allows the user to continue working without impacting PC performance while a scan is executed.
+    
+    A notification will be posted when the scan is complete.
+    
+@image html 140204ProcessDiagram-v1-1.png
+<CENTER>
+                    Figure 1.0.0 System Architecture Diagram
+</CENTER>
+
+
+@image html Crystals.png
+<CENTER>
+                    Figure 1.0.1 Crystals Integration
+</CENTER>
+
+
+
+@image html SiteCrawl-Tool-Init.png
+<CENTER>
+                    Figure 1.1.0 Test Tool Initialisation
+</CENTER>
+
+
+@image html SiteCrawl-Tool-Ready.png
+<CENTER>
+                    Figure 1.1.1 Test Tool Ready to Crawl
+</CENTER>
+
+
+<a href="ProcessDiagram-v1-3.pdf" target="_blank"><b>System Interaction Diagram</b></a>
+ 
+
+Requirements:
+    
+1.  Solve a 4x4 frame
+    
+2.  Solve a 5x5 frame.
+    
+    
+
+
+@subsection sec_1_2	1.2 Guide to the Document
+
+	This document is designed to be formatted as a html document for viewing through
+	a web browser. It is automatically generated using doxygen.
+    
+	
+	It is intended for use by developers and customers to tune system options.
+    
+
+	This document is split into several sections, including manually generated sections
+	and several automatically generated sections that detail the methods available.
+    
+
+
+@subsection sec_1_3	1.3	Assumptions
+
+	Not applicable
+
+
+@section sec_2		2.	Requirements Mapping
+
+	The requirements for the system are mapped to the LLD in this LLD document.
+
+	This document outlines the system's functional user requirements.
+	
+	It does not specify, functional or system requirements.
+	The aim of this document is to specify, and later agree on, the functionality of the system from a user perspective. 
+	    
+	The requirements specified in this document can broadly be grouped in 4 MoSCoW categories:    
+
+	Must     
+
+	Should    
+
+	Could    
+
+	Will not    
+    
+
+	These indicate the priority of each requirement, "must" being the highest priority, and to more clearly define the system boundary.    
+
+	The functional user requirements of the system are as follows:    
+
+	1. The system must measure tension.	    
+
+		1.1. Tension must be measurable using a nominal, dichotomous, and binary scale. For example, "tension" or "no tension".    
+
+		1.2. Tension must be measurable on a non-dichotomous ordinal scale. For example, "no tension", "tension", "high tension".	    
+
+		1.3. Tension must be measurable on a continuous ratio scale. For example, a decimal number between 0 and 1.
+	2.    
+
+		The system must measure cohesion.    
+
+	3. Data sources:    
+
+		3.1. The system must include Twitter as a data source.    
+
+		3.2. The system should include the Police API as a data source.    
+
+		3.3. The system should include authoritative news websites as a data source.    
+
+		3.4. The system should include forums (discussion websites) as a data source.    
+
+		3.5. The system will not include video, audio, or other non-textual data as a data source.    
+
+		3.6. Users will not be able to modify the list of data sources.    
+
+	4. Query constraints:    
+
+		4.1. The system could allow the user to constrain queries such that data is limited (where applicable) to sources of a specific gender. For example, a query could be constrained to tweets from males only.    
+
+			4.1.1. The gender of a source will be determined by the system and may not be 100% accurate.    
+
+		4.2. Time:    
+
+			4.2.1. The system will allow the user to constrain queries using a pre-defined time interval.    
+
+			4.2.2. The system could allow the user to constrain queries using an arbitrary time interval.    
+
+		4.3. The system will not allow ethnicity to be used as a query constraint.    
+
+		4.4. The system will not allow age to be used as a query constraint.    
+
+		4.5. The system will not allow socio-economic background to be used as a query constraint.    
+
+		4.6. Geographic constraints:4.6.1.Geographic constraints for all sources:    
+
+			4.6.1.1. The system must allow the user to constrain a query to use data that is related to a predefined geographic region.    
+
+			4.6.1.2. The system should allow the user to constrain a query to use data that is related to a specific area that is bounded by a distance from a central point. 
+			@code
+			For example, within 1 mile of the point 51�33'16''N, 3�2'44''W.
+			@endcode			
+
+			4.6.1.3. The system could allow the user to constrain a query to use data that is related to a specific area that is bounded by a complex region. For example, within 10 miles of Cardiff.    
+
+			4.6.2. Extra geographic constraints for Twitter:    
+
+			4.6.2.1. The system must allow the user to constrain a query to use tweets that the system believes to be from a predefined geographic region.    
+
+			4.6.2.2. The system should allow the user to constrain a query to use tweets that the system believes to be from a region that is bounded by a distance from a central point.    
+
+			4.6.2.3. The system could allow the user to constrain a query to use tweets that the system believes to be from a complex region.
+			
+	5.Query reporting:    
+
+		5.1. The user must be able to specify the frequency of proactive reporting. For example, a report should be generated once per week.    
+
+		5.2. The user could be able to specify that a report will be generated when a specific trigger occurs. For example, the system could produce a report when a level of tension has been reached under specific query constraints.    
+
+			5.2.1. The user could be able to specify the triggers that can be use
+	
+	
+@section sec_3		3.	Low Level Design Overview
+@subsection sec_3_1	3.1	Description
+
+	
+In order for the system to function a JVM must be made available.  
+
+
+
+
+	Search methods,
+	
+		1. Backtrack 
+		
+@code
+    User Interface Panel to be included in the application portal.
+    Database - customer
+@endcode	
+
+@image html Crystals-Tool-Ready.png
+					<CENTER>
+                    Figure 1.1.1 Database diagram
+					</CENTER>
+
+
+
+@subsection sec_3_2	3.2	Disabling Strategy
+	
+	There are no disabling requirements for the system.
+
+
+@subsection sec_3_3	3.3	Logging Strategy
+	
+	Logging is achieved via Tomcat Catalina.out.  The system specific components 
+	log to the same location for consistency.  By combining the log information within 
+	this common file it simplifies diagnosis of interaction between components as the log
+	provide a serialised view of the system and message exchange between components.
+
+
+@section sec_4		4.	Security
+	
+	There are no security aspects specific to the system.  However there will exist a username.password 
+	based connection within the WebLab GUI interface which may be used during initial configuration of
+	the system.
+
+
+@section sec_5		5.	Interactions and dependencies
+
+	The system connects via the Internet to a number of external web sites to analyse each site.  For the system to function each site needs to be up and running.  If access is via a proxy server all necessary configuration parameters must be applied.
+	
+	@note The system automatically sends status reports and results to the parent website.
+
+	
+@subsection sec_5_1	5.1	Interactions with, and Dependencies on the Existing Systems
+	
+	The system has interaction and dependency on existing systems.
+	WebLab Bundle 2.0.1 provides the framework for the system.
+	The system is platform independent.  Refer to the systems requirements section for recommended system requirements.
+	
+
+@subsection sec_5_2 5.2 Interactions with, and Dependencies on new features
+    
+    As this is a new development there are no specific new features that have any interactions or
+    dependencies with the system.  
+
+    
+@subsection sec_5_2 5.3 System Requirements
+    
+    Recommended system requirements:
+      CentOS 6.5.
+      8 core processor/s.
+      16GB or Memory.
+      2TB Hard disk.
+
+
+@section sec_6		6.	Design Alternatives and Decisions
+
+	The core of the system comprises of the Orchestration service and the Inferencing System.  These services may
+	exist in a stand alone manor if desired.  The SiteCrawler can be used to provide crawled documents to the 
+	systems as an alternative to the the full WebLab bundle if desired.  
+
+
+@section sec_7		7.	Retrofit, Backward Compatibility and Interoperability
+
+@subsection sec_7_1	7.1	Retrofit
+
+
+Configuring Distributed WebLab
+
+To ensure functionality remains intact during deployment, the supplied WebLab bundle is extracted on each server or VM intended to host one or more components.
+
+ - Example Configuration.
+    -# Portal \t        192.168.1.197       Crystals Portal. 
+    -# Storage \t    192.168.1.112       MySQL Database server. 
+
+
+
+Pre-requisites 
+Java must be installed prior to running Crystals for the first time.
+
+Download and Install Java from http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html
+
+
+Installation of Java on CentOS 6.5 
+@code
+rpm -Uvh jdk-7u55-linux-x64.rpm16:5
+@endcode
+
+
+As root user execute the following
+@code
+alternatives -install /usr/bin/java java /usr/java/jdk1.7.0_55/jre/bin/java 20000
+alternatives -install /usr/bin/jar jar /usr/java/jdk1.7.0_55/jre/bin/jar 20000
+alternatives -install /usr/bin/javac javac /usr/java/jdk1.7.0_55/jre/bin/javac 20000
+alternatives -install /usr/bin/javaws javaws /usr/java/jdk1.7.0_55/jre/bin/javaws 20000
+alternatives -set java /usr/java/jdk1.7.0_55/jre/bin/java
+alternatives -set jar /usr/java/jdk1.7.0_55/jre/bin/jar
+alternatives -set javac /usr/java/jdk1.7.0_55/jre/bin/javac
+alternatives -set javaws /usr/java/jdk1.7.0_55/jre/bin/javaws
+@endcode
+
+
+Add the following two lines to ~/.bashrc
+@code
+    export CRYSTALS_HOME=/opt/crystals
+    export JAVA_HOME=/usr/java/jdk1.7.0_55
+    export PATH=$PATH:$JAVA_HOME/bin
+@endcode
+
+@code
+    To apply these new environment variables.
+	 Execute: source ~/bashrc 
+@endcode
+
+
+
+Start on the PORTAL Server
+Once configured and verified, only the Liferay element will be used on this server.
+
+@code
+# Ensure CRYSTALS_HOME has been set as described above 
+unzip WebLab bundle into $CRYSTALS_HOME
+invoke WebLab via ./weblab start
+verify weblab operation via http://localhost:8181
+stop WebLab via ./weblab stop
+Launch Only Liferay via ./weblab liferay start
+@endcode
+
+Moving Heritrix to a standalone server via NFS shared folder.
+
+
+Modify Firewall settings by adding the ports
+    -# 111(portmapper). 
+    -# 32803(lockd tcpip). 
+    -# 32769(lockd udp). 
+    -# 892(mountd port tcp/udp). 
+
+
+Check for Portmapper and mountd via.
+@code
+    rpcinfo -p 192.168.1.114
+@endcode
+
+Verify that the shared folder is available.
+@code
+   showmount -e 192.168.1.114
+@endcode
+
+Prior to mounting the shared folder via the following command, delete the contents of the mount folder $CRYSTALS_HOME/data/warcs including the hidden folder .camel if it exists.
+@code
+sudo mount -o vers=3 -vt nfs 192.168.1.114:$CRYSTALS_HOME/data/warcs $CRYSTALS_HOME/data/warcs
+@endcode
+
+From the Portal server (192.168.1.197) check the web connection to Heritrix
+    https://192.168.1.114:8443  admin/admin
+
+Within the Site Job file $CRYSTALS_HOME/data/jobs/site/crawler-beans.cxml modify the User Agent to reflect Lynx rather than Mozilla.  This enable content extraction from the likes of BBC News which uses JavaScript for many of its articles.
+
+@code
+"User-Agent", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2 +@OPERATOR_CONTACT_URL@"
+
+"User-Agent", "Lynx/2.8.7rel.2 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.0.0a +@OPERATOR_CONTACT_URL@"
+@endcode
+
+
+Modifying the address for each component from localhost to the real IP of the target system.  A few files are to be modified $CRYSTALS_HOME/conf/configuration.xml
+
+Portal Server (192.168.1.197)
+    $CRYSTALS_HOME/conf/configuration.xml
+    $CRYSTALS_HOME/conf/configuration.xml
+
+    Properties Bean
+    prop key="heritrix.host" 192.168.1.114 prop
+
+    Liferay Bean
+@code
+    entry key="JAVA_OPTS" value=" -Mnx1024m -XX:MaxPermSize=512m -Dweblab.client.url=http://192.168.1.112:${tomcat.http.port}/exposed-configuration/weblab-client.xml -Dweblab.portlet.filter.url=http://192.168.1.112:${tomcat.http.port}/exposed-configuration/weblab-portlet-filters.xml -Dcom.sum.management.jmxremote -Dcom.sun.management.jmxremote.port:18080 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dheritrix.port=${heritrix.port} -Dheritrix.host=${heritrix.host} -Dheritrix.user=${heritrix.user} -Dheritrix.pwd=${heritrix.pwd} -Dheritrix.monitoring.jobs.mapping.file=${heritrix.monitoring.jobs.mapping.file}"
+@endcode
+
+
+
+Crawl Server (192.168.1.114)
+    $CRYSTALS_HOME/conf/configuration.xml
+    Heritrix Bean
+@code
+    property name="commandLineArguments" value=" --web-admin ${heritrix.user}:${heritrix.pwd} --web-port ${heritrix.port} --jobs-dir ${weblab.data}jobs --web-bind-hosts 192.168.1.114"
+@endcode
+
+Processing Server (192.168.1.112)
+    Heritrix Bean
+@code
+    property name="commandLineArguments" value=" --web-admin ${heritrix.user}:${heritrix.pwd} --web-port ${heritrix.port} --jobs-dir ${weblab.data}jobs --web-bind-hosts 192.168.1.112"
+@endcode
+
+
+Hosts
+The hosts file /etc/hosts must be modified on each WebLab host to refleact the location of the solr-server and fuseki-server.  
+These are as follow for a default installation, however IP addresses may differ from system to system.
+     
+From the Portal Server (192.168.1.197)
+    192.168.1.112   solr-server fuseki-server
+
+From the Crawl Server (192.168.1.114)
+    192.168.1.112   fuseki-server
+
+From the Processing Server (192.168.1.112)
+    localhost   solr-server fuseki-server
+    
+
+
+Exposed-configuration
+Portal Server (192.168.1.197)
+    $CRYSTALS_HOME/conf/exposed-configuration/weblab-client.xml
+
+    All references to localhost to be changed to 192.168.1.112
+
+Crawl Server (192.168.1.114)
+    No change required
+
+Processing Server (192.168.1.112)
+    $CRYSTALS_HOME/conf/exposed-configuration/weblab-client.xml
+
+
+    All references to localhost to be changed to 192.168.1.112
+
+
+
+
+	
+@subsection sec_7_2	7.2	Backward Compatibility 
+
+	Not applicable.
+
+
+@subsection sec_7_3	7.3	Interoperability
+
+@image html Screenshot-Liferay.png
+					<CENTER>
+                    Figure 1.2.0 Liferay WebLab - Screen Shot
+					</CENTER>
+					
+
+@image html Screenshot-Heritrix.png
+					<CENTER>
+                    Figure 1.3.0 Heritrix - Screen Shot
+					</CENTER>
+					
+
+@image html Screenshot-Hawtio.png
+					<CENTER>
+                    Figure 1.4.0 Hawtio - Screen Shot
+					</CENTER>
+					
+
+@image html Screenshot-Fuseki.png
+					<CENTER>
+                    Figure 1.5.0 Fuski - Screen Shot
+					</CENTER>
+					
+
+
+
+@section sec_8		8.	System Resources, Performance and Capabilities
+
+	Performance can be impacted by the following.
+	 - PC Specification and Performance.
+	 - Web Server Specification and Performance
+     - Internet Connection Speed/Limitations
+     - Proxy Server Speed/Limitations
+     - Quantity and complexity of data to be analysed.
+	
+
+@subsection sec_8_1	8.1	System Resource Usage
+
+	Methods can be run simultaneously so could cause substantial impact to loacl PC and 
+	Web Server performance, so use of this tool should be restricted to outside of business 
+	hours..
+
+
+@subsection sec_8_2	8.2	Limitations
+
+	TODO
+	
+	
+@subsection sec_8_3	8.3	Expansion Considerations
+
+	New methods can be added due to the modular nature of the system.  The system comprises
+	 of a number of web services, the inferencing system and an orcestration service.  The 
+	 each service is combined into a chain using Apachie Camel.  These chains can be modified 
+	 and enhansed services can be inserted into the chains as required.  
+
+
+@section sec_9		9.	Reliability
+
+	The methods have been design to incorporate a standard interface to allow the 
+	reporting of failures during test.
+	
+	It is the responsibility of the test developer to ensure this mechanism is implemented,
+	to allow corrective action at the earliest opportunity. 
+	
+	TODO Elaborate
+
+@section sec_10		10.	User Perspective and InfoSource Impact
+
+	Not applicable.
+	
+	
+@subsection sec_10_1	10.1	Service Provider
+	
+	Not applicable.
+
+
+@subsection sec_10_2	10.2	Subscriber
+	
+	The system connects to the Crystals web site in order to verify subscriber details.  Firewall and Proxy Server details must be made available to the tool.
+	
+		- Subscriber Customisation Information
+		
+	@note The test developer can utilize locally stored files rather than web based files in order to reduce network traffic during debug, development, sanity and soak testing.
+
+
+@section sec_11		11.	Detailed Design
+@subsection sec_11_1	11.1	Overview
+
+	ToDo
+
+@subsection sec_11_2	11.2	Subsystem Initialisation
+
+	 The system is a dynamic object and as such needs specific initialisation either from configuration files or default demonstrator files.
+	
+
+@subsection sec_11_3	11.3	Subsystem Interface
+
+	The system exposes interfaces to the inferencing system and the user interface (UI).
+
+
+@section sec_12		12.	Scenarios
+
+	ToDo
+
+
+@section sec_13		13.	Test Considerations
+@subsection sec_13_1	13.1	Lab and Tool Requirements
+	
+	Server
+	Internet connection
+	Topics of interest
+	Communities of place.
+	ToDo - continue
+	
+
+@subsection sec_13_2	13.2	Integration Planning
+
+	Integration testing is performed on a known web site to ensure each method acts as stated in this document.
+	An archive of preious site snapshots and social networking content wil be used to test the reproducability of 
+	results for a known outcome.
+
+
+@subsection sec_13_3	13.3	Stress Testing
+	
+    Minimal stress testing will be performed during the proof of concept phase.
+	
+	
+@subsection sec_13_4	13.4	Security Testing
+
+    Minimal security testing will be performed during the proof of concept phase.
+
+
+@subsection sec_13_5	13.5	Adversarial Testing
+
+	Not applicable.
+
+
+@section sec_14		14.	Practice Considerations
+	
+	With the exception of avoiding sensitive or offensive search criteria as defined within the 
+	requirements mapping section 2 subsection 4, there are no specific practice considerations.
+	
+
+
+@section sec_15		15.	Assessment of design
+
+
+@subsection sec_15_1	15.1	<Subject>
+@subsection sec_15_1_1	15.1.1	Comparison with Existing Functionality
+	
+	Not applicable.
+
+
+@subsection sec_15_1_2	15.1.2	Use
+	
+	ToDo.
+
+
+@section sec_16		16.	Developers Reading List
+	
+	A number of components and technologies are integrated into the system.  The following ordered list, provides recommended reading material.
+	
+
+	Jenna (Apache)		https://jena.apache.org/getting_started/index.html 
+		RDF			https://jena.apache.org/tutorials/rdf_api.html
+		SPARQL		http://jena.apache.org/tutorials/sparql.html 
+		Ontology (OWL Models)	http://jena.apache.org/documentation/ontology 
+		Fuseki (SPARQL Server) 	http://jena.apache.org/documentation/serving_data/
+			RESTful (Representaional State Transfer) 
+
+
+	Key Knowledge
+	Karaf (Apache) small OSGi http://karaf.apache.org (see user/developer guides)
+		OSGi (book: Enterprise OSGi in Action )
+
+	Note: Camel is installed onto Karaf
+	Camel				http://camel.apache.org/getting-started.html 
+			(book: Camel in Action)	
+		EIP 			http://camel.apache.org/enterprise-integration-patterns.html 
+			(book: Enterprise Integration Patterns by Bobby Woolf) 
+		JMS	http://docs.oracle.com/javaee/1.3/jms/tutorial/1_3_1-fcs/doc/jms_tutorialTOC.html 
+		ActiveMQ	http://activemq.apache.org/getting-started.html 
+
+
+	Portlets (book: Portlets in Action, not recommended)
+
+	Web Services (book: Java Web Services)
+		RESTful http://www.ibm.com/developerworks/webservices/library/ws-restful/ 
+			(POST, GET, PUT, DELETE => create, read, update, and delete (CRUD) )
+			(book: RESTful Web APIs)
+			JSON (JAva Script Object Notation)
+				Javascript
+		SOAP	http://www.w3schools.com/webservices/ws_soap_intro.asp 
+		
+
+	Schema (XML)	http://www.w3schools.com/Schema/ 
+		XML			http://www.w3schools.com/xml/default.asp 
+
+	Spring		http://docs.spring.io/spring/docs/3.1.0.M1/spring-framework-reference/html/overview.html 
+
+	JavaEE
+		TagLib (JSP)	http://www.tutorialspoint.com/jsp/taglib_directive.htm 
+
+	Liferay	https://www.liferay.com/documentation/liferay-portal/6.2/user-guide 
+	DOM		http://www.w3.org/DOM/   http://www.w3schools.com/dom/dom_nodetype.asp 
+
+
+	Nice to Have
+	Maven		http://maven.apache.org/ 
+	Tomcat      http://tomcat.apache.org/ 
+	Solr		http://lucene.apache.org/solr/
+	Heritrix	https://webarchive.jira.com/wiki/display/Heritrix/Heritrix 
+
+	WebKit http://www.webkit.org
+
+ToDo - update this list
+
+
+		
+	
+*/ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/**
+@page _issues       Risks and Open Issues
+    
+    Not applicable.
+
+*/ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/**
+@page _issues       Fequently Asked Questions (FAQ)
+    
+    Runaway disk ussage:  In the event of a circular site crawl it may be nessesary to purge the 
+    ActiveMQ message queue.
+
+*/ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/**
+@page _acknowledgements	Acknowledgements
+
+
+*/ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/**
+@page _abbreviations	Terms and Abbreviations
+
+<B>URI</B> - Universal Resource Indicator define the location of a file or resource.
+
+<B>URL</B> - Universal Resource Locator define the location of a file or resource on a remote machine.
+
+*/ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/**
+@page _acronyms		Acronyms
+
+<B>CPU</B>	Central Processing Unit
+
+<B>DDC</B>	Device Driver Control
+
+<B>ACK</B>	Acknowledgment
+
+*/ +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+/**
+@page _references	References
+<B>Low Level Design Template</B> (02-Juen-2014)
+
+<B>High Level Design</B> (02-June-2014)
+
+<B>Message Interface Specification</B> (02-June-2014)
+
+<B>Developer Tester Notes</B> (09-Sept-2014)
+
+<B>FreeMind Map</B> (09-Sept-2014)
+
+
+
+*/
+ 

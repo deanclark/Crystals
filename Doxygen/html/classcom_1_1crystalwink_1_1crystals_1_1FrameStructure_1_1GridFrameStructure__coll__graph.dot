@@ -1,0 +1,12 @@
+digraph "com.crystalwink.crystals.FrameStructure.GridFrameStructure"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystals.\lFrameStructure.GridFrameStructure\n|+ ORIGIN_FROM_HINT\l+ ORIGIN_FROM_EDGE\l+ ORIGIN_FROM_CORNER\l+ ORIGIN_FROM_CORNER\l_EDGE_HINT_EQUAL\l+ ORIGIN_FROM_HINT_SEED\l+ scoreLockMode\l~ selectFromAllQualifyingCells\l~ VerticalRowCells\l~ HorizontalColumnCells\l~ totalColours\l~ frameArray\l~ lockArray\l~ singlePathMode\l~ debugSinglePath\l~ ROW_INDEX\l~ COL_INDEX\l# nGridRows\l# nGridColumns\l|+ GridFrameStructure()\l+ GetLastColourIndex()\l+ SetLastColourIndex()\l+ isColourAvailable()\l+ setMaxColoursIndex()\l+ listAvailableColours()\l+ dumpFrameToTxt()\l+ clearEntireFrame()\l+ setColour()\l+ clearGridColour()\land 20 more...\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
+  Node2 [label="{com.crystalwink.crystals.\lFrameStructure.SimpleFrame\n||+ SimpleFrame()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1SimpleFrame.html"];
+  Node3 -> Node2 [color="grey25",fontsize="10",style="solid",label=" +simpleFrameArray" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node3 [label="{com.crystalwink.crystals.\lFrameStructure.SimpleTileInfo\n|+ tileId\l+ orientation\l|}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1SimpleTileInfo.html"];
+  Node4 -> Node1 [color="grey25",fontsize="10",style="solid",label=" ~tilePlacementOrder2" ,arrowhead="odiamond",fontname="Helvetica"];
+  Node4 [label="{com.crystalwink.crystalscommon.\lTilePlacementInfo.TilePlacementInfo\n|+ ROW_INDEX\l+ COL_INDEX\l+ TILEID_INDEX\l+ tileHistory\l|+ TilePlacementInfo()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystalscommon_1_1TilePlacementInfo_1_1TilePlacementInfo.html"];
+}

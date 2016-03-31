@@ -1,0 +1,6 @@
+<map id="com.crystalwink.crystals.FrameStructure.GridFrameStructure.cellWithMostLockedNeighbours" name="com.crystalwink.crystals.FrameStructure.GridFrameStructure.cellWithMostLockedNeighbours">
+<area shape="rect" id="node3" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#a7ab46945f054b7da83cdf308286bb9ea" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.grid\lCellFullyPlacedGet" alt="" coords="331,5,584,69"/>
+<area shape="rect" id="node5" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#ab94b654ffa6e903dfc4f032beaaa4f4d" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.get\lGridIndex" alt="" coords="332,93,583,157"/>
+<area shape="rect" id="node7" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#a9a2c71cb16aea1ecf58317244856088c" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.scoreLock" alt="" coords="311,181,604,227"/>
+<area shape="rect" id="node9" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#a6fd0c369209dfa494c5753662c6710ec" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.row\lColToSerialisedFrameNumber" alt="" coords="331,251,584,315"/>
+</map>

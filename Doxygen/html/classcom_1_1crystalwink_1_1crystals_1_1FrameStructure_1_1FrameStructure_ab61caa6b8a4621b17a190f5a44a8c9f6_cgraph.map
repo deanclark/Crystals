@@ -1,0 +1,5 @@
+<map id="com.crystalwink.crystals.FrameStructure.FrameStructure.verifyTile" name="com.crystalwink.crystals.FrameStructure.FrameStructure.verifyTile">
+<area shape="rect" id="node3" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1FrameStructure.html#a88586cb58a3436e71e004e98b9016e3a" title="com.crystalwink.crystals.\lFrameStructure.FrameStructure.define\lTileFromFrame" alt="" coords="339,5,584,69"/>
+<area shape="rect" id="node5" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1FrameStructure.html#a45619076ec93c34383dd335e1c53a75c" title="com.crystalwink.crystals.\lFrameStructure.FrameStructure.compareTiles" alt="" coords="317,93,605,139"/>
+<area shape="rect" id="node7" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1FrameStructure.html#a2197b412404a4627cd67455f365474f9" title="com.crystalwink.crystals.\lFrameStructure.FrameStructure.valid\lSegmentRecursion" alt="" coords="653,84,891,148"/>
+</map>

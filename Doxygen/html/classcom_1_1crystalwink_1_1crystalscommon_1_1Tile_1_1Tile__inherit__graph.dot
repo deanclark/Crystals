@@ -1,0 +1,10 @@
+digraph "com.crystalwink.crystalscommon.Tile.Tile"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystalscommon.\lTile.Tile\n|+ WireLinkIndex\l+ tileSegment\l+ rotationVector\l+ xWorldSpace\l+ yWorldSpace\l+ dx\l+ dy\l+ lock\l+ indexOppositeEdge\l+ nextToEdgeSegments\l+ segmentCount\l+ segmentScale\l+ UNLOCKED\l+ LOCKED\l+ TEMPORARY_LOCKED\l~ primarySegment\l~ segmentPriority\l~ numberOfEdgeSegments\l~ indexOfEdgeSegment\l~ edgeColorIndex\l|+ locked()\l+ moved()\l+ moved()\l+ Tile()\l+ TileScaled()\l+ getTileColours()\l+ initTileColours()\l+ initTile()\l+ getOrientation()\l+ moveTile()\l+ getEdgeAdjacent()\l+ setEdgeOposite()\l+ getEdgeOposite()\l+ getEdgeCount()\l+ checkForEdgeSegments()\l+ getSegmentScale()\l+ setSegmentScale()\l~ rotationZ()\l~ threeDcross14()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node2 -> Node1 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
+  Node2 [label="{com.crystalwink.crystalscommon.\lTileAbstract.TileAbstract\n||+ TileAbstract()\l+ getId()\l+ setId()\l+ getLbl()\l+ setLbl()\l+ getOrientation()\l+ setOrientation()\l+ getNumberOfEdges()\l+ setNumberOfEdges()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystalscommon_1_1TileAbstract_1_1TileAbstract.html"];
+  Node1 -> Node3 [dir="back",color="midnightblue",fontsize="10",style="solid",arrowtail="onormal",fontname="Helvetica"];
+  Node3 [label="{com.crystalwink.crystals.\lTilePrintableAwt.TilePrintableAwt\n||+ TilePrintableAwt()\l+ PrintTile()\l}",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1TilePrintableAwt_1_1TilePrintableAwt.html"];
+}

@@ -1,0 +1,15 @@
+digraph "com.crystalwink.crystals.FrameStructure.GridFrameStructure.selectRandomColour"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.select\lRandomColour",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.is\lCorner",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#afee873bacdc5cb52ad2b7737e4cb4d25"];
+  Node2 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.get\lGridIndex",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#ab94b654ffa6e903dfc4f032beaaa4f4d"];
+  Node1 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.\lGetLastColourIndex",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#abf066aed77e0cc49a10f4599cdfc7e1e"];
+  Node1 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.is\lColourAvailable",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#aa10e9b6a6d97619171f5202e32b7154e"];
+}

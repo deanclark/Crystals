@@ -1,0 +1,5 @@
+<map id="com.crystalwink.crystals.FrameStructure.GridFrameStructure" name="com.crystalwink.crystals.FrameStructure.GridFrameStructure">
+<area shape="rect" id="node2" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1SimpleFrame.html" title="{com.crystalwink.crystals.\lFrameStructure.SimpleFrame\n||+ SimpleFrame()\l}" alt="" coords="8,218,200,321"/>
+<area shape="rect" id="node4" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1SimpleTileInfo.html" title="{com.crystalwink.crystals.\lFrameStructure.SimpleTileInfo\n|+ tileId\l+ orientation\l|}" alt="" coords="5,5,203,125"/>
+<area shape="rect" id="node6" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1TilePlacementInfo_1_1TilePlacementInfo.html" title="{com.crystalwink.crystalscommon.\lTilePlacementInfo.TilePlacementInfo\n|+ ROW_INDEX\l+ COL_INDEX\l+ TILEID_INDEX\l+ tileHistory\l|+ TilePlacementInfo()\l}" alt="" coords="224,192,459,347"/>
+</map>

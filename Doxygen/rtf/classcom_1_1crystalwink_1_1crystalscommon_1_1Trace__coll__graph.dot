@@ -1,0 +1,6 @@
+digraph "com.crystalwink.crystalscommon.Trace"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystalscommon.\lTrace\n|+ DEBUG_GENERAL\l+ DEBUG_SETUP\l+ DEBUG_RELAX1\l+ DEBUG_RELAX2\l+ DEBUG_RELAX3\l+ DEBUG_TILE\l+ DEBUG_SEGMENT\l+ DEBUG_WIRES\l+ DEBUG_MOUSE\l+ DEBUG_REBALANCE\l+ DEBUG_OUT_OF_RANGE\l+ debugLevel\l+ activeDebugTrace\l|}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

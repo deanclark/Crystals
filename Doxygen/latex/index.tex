@@ -1,0 +1,544 @@
+
+
+\begin{DoxyAuthor}{Author}
+Dean Clark 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+Draft Crystals 00.\+00.\+00.\+01 (1-\/\+Sept-\/2015)
+\end{DoxyVersion}
+\hypertarget{index_sec_1}{}\section{1. 	\+Introduction}\label{index_sec_1}
+\begin{DoxyVerb}The Crystal system will hereafter be referred to as "the system".
+
+This document describes the system, its user interfaces, programming API and the interaction 
+and integration with other components.
+
+Installation of system is described within this document. 
+\end{DoxyVerb}
+\hypertarget{index_sec_1_1}{}\subsection{1.\+1	\+Overview}\label{index_sec_1_1}
+\begin{DoxyVerb}The system has been implemented to search the content of various web sites for specific text
+and phrases.  This content is further processed, categorised and scored in terms of cohesion and tension.
+
+A stand-alone and Web based interface is available, for the configuration of the search tool.
+User login is required for both the full and demonstrator search.  This requirement is 
+necessary to prevent the tool from being used for malicious purposes.  E-mail confirmation 
+may be used during the registration process to restrict a users account to search a reduced set of domains. 
+
+Due to the nature of this tool, a scan is scheduled rather than executed immediately.  This allows the software
+ to limit the amount of Internet traffic targeted at each site to prevent performance
+impact to a third parties site/service and reduce the likelihood of being mistaken as a denial of service style
+ attack during the scan.  This could potentially result in the service being blacklisted and prevent future 
+ mining of the site.
+
+Once scheduled the scan will be executed on a remote server rather than the users local machine.  
+This allows the user to continue working without impacting PC performance while a scan is executed.
+
+A notification will be posted when the scan is complete.
+\end{DoxyVerb}
+
+
+ \begin{center} Figure 1.\+0.\+0 System Architecture Diagram \end{center} 
+
+ \begin{center} Figure 1.\+0.\+1 Web\+Lab Integration \end{center} 
+
+ \begin{center} Figure 1.\+1.\+0 Test Tool Initialisation \end{center} 
+
+ \begin{center} Figure 1.\+1.\+1 Test Tool Ready to Crawl \end{center} 
+
+\href{CAT-D_140204ProcessDiagram-v1-3.pdf}{\tt {\bfseries System Interaction Diagram}}
+
+Requirements\+:
+
+
+\begin{DoxyEnumerate}
+\item Info\+Source login is required for both the full and demonstrator search.
+\item Restrict user account to search the domain matching their e-\/mail domain.
+\item Additional domains can be registered only if e-\/mail confirmation from the request domain is received.
+\item Failed authentication via Liferay login portlet will prevent access to the services offered by the system.
+\end{DoxyEnumerate}\hypertarget{index_sec_1_2}{}\subsection{1.\+2 Guide to the Document}\label{index_sec_1_2}
+\begin{DoxyVerb}This document is designed to be formatted as a html document for viewing through
+a web browser. It is automatically generated using doxygen.
+
+
+It is intended for use by developers and customers to tune system options.
+
+
+This document is split into several sections, including manually generated sections
+and several automatically generated sections that detail the methods available.
+\end{DoxyVerb}
+\hypertarget{index_sec_1_3}{}\subsection{1.\+3	\+Assumptions}\label{index_sec_1_3}
+\begin{DoxyVerb}Not applicable
+\end{DoxyVerb}
+\hypertarget{index_sec_2}{}\section{2.	\+Requirements Mapping}\label{index_sec_2}
+\begin{DoxyVerb}The requirements for the system are mapped to the LLD in this LLD document.
+
+This document outlines the system's functional user requirements.
+
+It does not specify functional or system requirements.
+The aim of this document is to specify, and later agree on, the functionality of the system from a user perspective. 
+
+The requirements specified in this document can broadly be grouped in 4 MoSCoW categories:    
+
+Must     
+
+Should    
+
+Could    
+
+Will not    
+
+
+These indicate the priority of each requirement, "must" being the highest priority, and to more clearly define the system boundary.    
+
+The functional user requirements of the system are as follows:    
+
+1. The system must measure tension.     
+
+    1.1. Tension must be measurable using a nominal, dichotomous, and binary scale. For example, "tension" or "no tension".    
+
+    1.2. Tension must be measurable on a non-dichotomous ordinal scale. For example, "no tension", "tension", "high tension".       
+
+    1.3. Tension must be measurable on a continuous ratio scale. For example, a decimal number between 0 and 1.
+2.    
+
+    The system must measure cohesion.    
+
+3. Data sources:    
+
+    3.1. The system must include Twitter as a data source.    
+
+    3.2. The system should include the Police API as a data source.    
+
+    3.3. The system should include authoritative news websites as a data source.    
+
+    3.4. The system should include forums (discussion websites) as a data source.    
+
+    3.5. The system will not include video, audio, or other non-textual data as a data source.    
+
+    3.6. Users will not be able to modify the list of data sources.    
+
+4. Query constraints:    
+
+    4.1. The system could allow the user to constrain queries such that data is limited (where applicable) to sources of a specific gender. For example, a query could be constrained to tweets from males only.    
+
+        4.1.1. The gender of a source will be determined by the system and may not be 100% accurate.    
+
+    4.2. Time:    
+
+        4.2.1. The system will allow the user to constrain queries using a pre-defined time interval.    
+
+        4.2.2. The system could allow the user to constrain queries using an arbitrary time interval.    
+
+    4.3. The system will not allow ethnicity to be used as a query constraint.    
+
+    4.4. The system will not allow age to be used as a query constraint.    
+
+    4.5. The system will not allow socio-economic background to be used as a query constraint.    
+
+    4.6. Geographic constraints:4.6.1.Geographic constraints for all sources:    
+
+        4.6.1.1. The system must allow the user to constrain a query to use data that is related to a predefined geographic region.    
+
+        4.6.1.2. The system should allow the user to constrain a query to use data that is related to a specific area that is bounded by a distance from a central point. 
+\end{DoxyVerb}
+ 
+\begin{DoxyCode}
+For example, within 1 mile of the point 51�33\textcolor{stringliteral}{'16'}\textcolor{stringliteral}{'N, 3�2'}44\textcolor{stringliteral}{''}W.
+\end{DoxyCode}
+
+
+4.\+6.\+1.\+3. The system could allow the user to constrain a query to use data that is related to a specific area that is bounded by a complex region. For example, within 10 miles of Cardiff.
+
+4.\+6.\+2. Extra geographic constraints for Twitter\+:
+
+4.\+6.\+2.\+1. The system must allow the user to constrain a query to use tweets that the system believes to be from a predefined geographic region.
+
+4.\+6.\+2.\+2. The system should allow the user to constrain a query to use tweets that the system believes to be from a region that is bounded by a distance from a central point.
+
+4.\+6.\+2.\+3. The system could allow the user to constrain a query to use tweets that the system believes to be from a complex region.
+
+5.\+Query reporting\+: \begin{DoxyVerb}5.1. The user must be able to specify the frequency of proactive reporting. For example, a report should be generated once per week.    
+
+5.2. The user could be able to specify that a report will be generated when a specific trigger occurs. For example, the system could produce a report when a level of tension has been reached under specific query constraints.    
+
+    5.2.1. The user could be able to specify the triggers that can be use
+\end{DoxyVerb}
+\hypertarget{index_sec_3}{}\section{3.	\+Low Level Design Overview}\label{index_sec_3}
+\hypertarget{index_sec_3_1}{}\subsection{3.\+1	\+Description}\label{index_sec_3_1}
+In order for the C\+A\+T-\/\+D system to make predictions on future cohesion and tension levels, the system will perform data analytic comparisons with known, historical data, where predictions are based on previous outcomes given similar trends and input criteria. This is similar to the intuitive nature of the brain which essentially recognises patterns based on previous experience and makes assumptions as to the expected outcome. By matching these trends against historical data the system may be able to quickly draw conclusions as to a predicted outcome with some element of certainty. In the case of a terror attack however, such as that seen on 26th May 2015 in Tunisia, it could been seen that related social media traffic increased dramatically immediately following the attack as you would expect, but petered out rapidly over the following days. There was no detectable indication that an attack was imminent via the twitter data collected within the U\+K, as one might expect. This trend closely mirrored the content of national news coverage which was possibly only extended due to repatriation timescales. When attempting to identify events of interest prior to an increasedecrease in C\&T it is necessary to monitor may sources of social data to ensure representative coverage from the community under analysis. As each community are unique it must be possible to supplement the automated information collection. Additional data added to an analysis job which may be essential for understanding the community but may not be automatically collected by the system. This may be issued to the system as additional R\+S\+S\+Web sites specifically relevant to the topic or area of interest. For example, the content of a postal flyer may be input into the system as a potential trigger with a 95\% population coverage, and a likelihood of consumption score of 18\% if issued to an entire community via a postal mail drop. Likewise; minutes of a parish meeting may contain relevant information, the results of which may not be published in a location generally monitored by the system. This documentation must be made available to the system for C\&T recalculation. An individual tweet although containing strong sentiment and feeling may only be seen by a small number of followers. Of these follower none of them may be within the area under analysis. This will significantly reduce the importance score of this tweet, such that it may be deemed entirely insignificant. A news article on the other hand is likely to have a wide audience and as such, its importance and frequency is most likely to increase. Local radio may also be reporting an issue, or perhaps hosting a live on air debate about a topic of interest. The transcript if this debate could be input into the system using a speech to txt system such as that offered by I\+B\+M Watson development cloud for example. Profiling the origin of data utilised during the analysis of C\&T, requires the capturing and tracking of all data associated with a task. This includes the initial topic criteria, time frame, location origin, location perimeter or radius and each data abstract used during the analysis. It may also be useful to identify a network of connections between data sources, such as followers and known connections between data sources. Job configuration allows for the selection of an monitor state. This will prompt the system to continually monitor the topics of interest until such time as the job is postponed or deleted. Also a track historical indication will cause the system to analysis in reverse chronological order, beyond the dates specified by the user, using all relevant data collected in the past, where such data exists. This will enable the user to attempt to retrospectively produce a report of change in C\&T for a known event. Take for example a, change in school uniform. It may be assumed that any tension associated with a uniform change is solely due to the uniform, however by analysing historical C\&T for this school it may be possible to identify that the tension was already there, prior to the announcement. This information may be useful for a number of reasons, but will also enable the long-\/term effects of such a change to be monitored. Week, month, year or infinite may specified as monitor\+\_\+duration options Alert mode enables the C\+A\+T-\/\+D system to notify the user following an indication of change of C\&T state. This will need to be adjusted on a per job basis as some topics will detect a more varies change in state than others. An increasedecrease sensitivity control will be used for hysteresis control. A link within the alert message will enable the user to adjust the sensitivity of the ongoing job where applicable.
+
+A user will be able to create groups that enable analysis tasks to be combined into relevant categorises. These groups can be made available to other members of an agreed set of users of the system. A group owner will have administration rights for the group and only on confirmation will the subscriber gain access to the jobs classified within the group. A user has the option to hide jobs that are of no interest. This differs from a deletion as the job remains visible to other members of the group. A share option will be provided to enable the user to share results with other members of the system or members of a specific group. To avoid spamming of all system users a opt in system will be configured.
+
+\begin{DoxyVerb}In addition to capturing Twitter Data, the system is also responsible for crawling a website and extracting a list of linked URLs where a word or phase is found.
+
+Search methods,
+
+    1. Web based scan scheduler 
+    2. Standalone application (Site Admin Only)
+\end{DoxyVerb}
+
+
+
+\begin{DoxyCode}
+User Interface Panel to be included in the application portal.
+Database - customer
+\end{DoxyCode}
+
+
+ \begin{center} Figure 1.\+1.\+1 Database diagram \end{center} \hypertarget{index_sec_3_2}{}\subsection{3.\+2	\+Disabling Strategy}\label{index_sec_3_2}
+\begin{DoxyVerb}There are no disabling requirements for the system.
+\end{DoxyVerb}
+\hypertarget{index_sec_3_3}{}\subsection{3.\+3	\+Logging Strategy}\label{index_sec_3_3}
+\begin{DoxyVerb}Logging is achieved via Tomcat Catalina.out.  The system specific components 
+log to the same location for consistency.  By combining the log information within 
+this common file it simplifies diagnosis of interaction between components as the log
+provide a serialised view of the system and message exchange between components.
+\end{DoxyVerb}
+\hypertarget{index_sec_4}{}\section{4.	\+Security}\label{index_sec_4}
+\begin{DoxyVerb}There are no security aspects specific to the system.  However there will exist a username.password 
+based connection within the WebLab GUI interface which may be used during initial configuration of
+the system.
+\end{DoxyVerb}
+\hypertarget{index_sec_5}{}\section{5.	\+Interactions and dependencies}\label{index_sec_5}
+\begin{DoxyVerb}The system connects via the Internet to a number of external web sites to analyse each site.  For the system to function each site needs to be up and running.  If access is via a proxy server all necessary configuration parameters must be applied.
+
+@note The system automatically sends status reports and results to the parent website.
+\end{DoxyVerb}
+\hypertarget{index_sec_5_1}{}\subsection{5.\+1	\+Interactions with, and Dependencies on the Existing Systems}\label{index_sec_5_1}
+\begin{DoxyVerb}The system has interaction and dependency on existing systems.
+WebLab Bundle 2.0.1 provides the framework for the system.
+The system is platform independent.  Refer to the systems requirements section for recommended system requirements.
+\end{DoxyVerb}
+\hypertarget{index_sec_5_2}{}\subsection{5.\+2 Interactions with, and Dependencies on new features}\label{index_sec_5_2}
+\begin{DoxyVerb}As this is a new development there are no specific new features that have any interactions or
+dependencies with the system.  
+\end{DoxyVerb}
+\hypertarget{index_sec_5_2}{}\subsection{5.\+2 Interactions with, and Dependencies on new features}\label{index_sec_5_2}
+\begin{DoxyVerb}Recommended system requirements:
+  CentOS 6.5.
+  8 core processor/s.
+  16GB or Memory.
+  2TB Hard disk.
+\end{DoxyVerb}
+\hypertarget{index_sec_6}{}\section{6.	\+Design Alternatives and Decisions}\label{index_sec_6}
+\begin{DoxyVerb}The core of the system comprises of the Orchestration service and the Inferencing System.  These services may
+exist in a stand alone manor if desired.  The agiSiteCrawler can be used to provide crawled documents to the 
+systems as an alternative to the the full WebLab bundle if desired.  
+\end{DoxyVerb}
+\hypertarget{index_sec_7}{}\section{7.	\+Retrofit, Backward Compatibility and Interoperability}\label{index_sec_7}
+\hypertarget{index_sec_7_1}{}\subsection{7.\+1	\+Retrofit}\label{index_sec_7_1}
+Configuring Distributed Web\+Lab
+
+To ensure functionality remains intact during deployment, the supplied Web\+Lab bundle is extracted on each server or V\+M intended to host one or more components.
+
+
+\begin{DoxyItemize}
+\item Example Configuration.
+\begin{DoxyEnumerate}
+\item Portal  192.\+168.\+1.\+197 Liferay Portal.
+\item Processing  192.\+168.\+1.\+112 All Other Web Services.
+\item Crawler  192.\+168.\+1.\+114 Heritrix.
+\end{DoxyEnumerate}
+\end{DoxyItemize}
+
+Pre-\/requisites Java must be installed prior to running Web\+Lab for the first time.
+
+Download and Install Java from \href{http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html}{\tt http\+://www.\+oracle.\+com/technetwork/java/javase/downloads/jdk7-\/downloads-\/1880260.\+html}
+
+Installation of Java on Cent\+O\+S 6.\+5 
+\begin{DoxyCode}
+rpm -Uvh jdk-7u55-linux-x64.rpm16:5
+\end{DoxyCode}
+
+
+As root user execute the following 
+\begin{DoxyCode}
+alternatives -install /usr/bin/java java /usr/java/jdk1.7.0\_55/jre/bin/java 20000
+alternatives -install /usr/bin/jar jar /usr/java/jdk1.7.0\_55/jre/bin/jar 20000
+alternatives -install /usr/bin/javac javac /usr/java/jdk1.7.0\_55/jre/bin/javac 20000
+alternatives -install /usr/bin/javaws javaws /usr/java/jdk1.7.0\_55/jre/bin/javaws 20000
+alternatives -set java /usr/java/jdk1.7.0\_55/jre/bin/java
+alternatives -set jar /usr/java/jdk1.7.0\_55/jre/bin/jar
+alternatives -set javac /usr/java/jdk1.7.0\_55/jre/bin/javac
+alternatives -set javaws /usr/java/jdk1.7.0\_55/jre/bin/javaws
+\end{DoxyCode}
+
+
+Add the following two lines to $\sim$/.bashrc 
+\begin{DoxyCode}
+export CATD\_HOME=/otp/catd
+export JAVA\_HOME=/usr/java/jdk1.7.0\_55
+export PATH=$PATH:$JAVA\_HOME/bin
+\end{DoxyCode}
+
+
+
+\begin{DoxyCode}
+To apply these \textcolor{keyword}{new} environment variables.
+ Execute: source ~/bashrc 
+\end{DoxyCode}
+
+
+Start on the P\+O\+R\+T\+A\+L Server Once configured and verified, only the Liferay element will be used on this server.
+
+
+\begin{DoxyCode}
+\textcolor{preprocessor}{# Ensure CATD\_HOME has been set as described above }
+unzip WebLab bundle into $CATD\_HOME
+invoke WebLab via ./weblab start
+verify weblab operation via http:\textcolor{comment}{//localhost:8181}
+stop WebLab via ./weblab stop
+Launch Only Liferay via ./weblab liferay start
+\end{DoxyCode}
+
+
+Moving Heritrix to a standalone server via N\+F\+S shared folder.
+
+Modify Firewall settings by adding the ports
+\begin{DoxyEnumerate}
+\item 111(portmapper).
+\item 32803(lockd tcpip).
+\item 32769(lockd udp).
+\item 892(mountd port tcp/udp).
+\end{DoxyEnumerate}
+
+Check for Portmapper and mountd via. 
+\begin{DoxyCode}
+rpcinfo -p 192.168.1.114
+\end{DoxyCode}
+
+
+Verify that the shared folder is available. 
+\begin{DoxyCode}
+showmount -e 192.168.1.114
+\end{DoxyCode}
+
+
+Prior to mounting the shared folder via the following command, delete the contents of the mount folder \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/data/warcs including the hidden folder .camel if it exists. 
+\begin{DoxyCode}
+sudo mount -o vers=3 -vt nfs 192.168.1.114:$CATD\_HOME/data/warcs $CATD\_HOME/data/warcs
+\end{DoxyCode}
+
+
+From the Portal server (192.\+168.\+1.\+197) check the web connection to Heritrix \href{https://192.168.1.114:8443}{\tt https\+://192.\+168.\+1.\+114\+:8443} admin/admin
+
+Within the Site Job file \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/data/jobs/site/crawler-\/beans.cxml modify the User Agent to reflect Lynx rather than Mozilla. This enable content extraction from the likes of B\+B\+C News which uses Java\+Script for many of its articles.
+
+
+\begin{DoxyCode}
+\textcolor{stringliteral}{"User-Agent"}, \textcolor{stringliteral}{"Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316
+       Firefox/3.6.2 +@OPERATOR\_CONTACT\_URL@"}
+
+\textcolor{stringliteral}{"User-Agent"}, \textcolor{stringliteral}{"Lynx/2.8.7rel.2 libwww-FM/2.14 SSL-MM/1.4.1 OpenSSL/1.0.0a +@OPERATOR\_CONTACT\_URL@"}
+\end{DoxyCode}
+
+
+Modifying the address for each component from localhost to the real I\+P of the target system. A few files are to be modified \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/conf/configuration.xml
+
+Portal Server (192.\+168.\+1.\+197) \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/conf/configuration.xml \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/conf/configuration.xml
+
+Properties Bean prop key=\char`\"{}heritrix.\+host\char`\"{} 192.\+168.\+1.\+114 prop
+
+Liferay Bean 
+\begin{DoxyCode}
+entry key=\textcolor{stringliteral}{"JAVA\_OPTS"} value=\textcolor{stringliteral}{" -Mnx1024m -XX:MaxPermSize=512m
+       -Dweblab.client.url=http://192.168.1.112:$\{tomcat.http.port\}/exposed-configuration/weblab-client.xml
+       -Dweblab.portlet.filter.url=http://192.168.1.112:$\{tomcat.http.port\}/exposed-configuration/weblab-portlet-filters.xml -Dcom.sum.management.jmxremote
+       -Dcom.sun.management.jmxremote.port:18080 -Dcom.sun.management.jmxremote.ssl=false
+       -Dcom.sun.management.jmxremote.authenticate=false -Dheritrix.port=$\{heritrix.port\} -Dheritrix.host=$\{heritrix.host\}
+       -Dheritrix.user=$\{heritrix.user\} -Dheritrix.pwd=$\{heritrix.pwd\}
+       -Dheritrix.monitoring.jobs.mapping.file=$\{heritrix.monitoring.jobs.mapping.file\}"}
+\end{DoxyCode}
+
+
+Crawl Server (192.\+168.\+1.\+114) \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/conf/configuration.xml Heritrix Bean 
+\begin{DoxyCode}
+\textcolor{keyword}{property} name=\textcolor{stringliteral}{"commandLineArguments"} value=\textcolor{stringliteral}{" --web-admin $\{heritrix.user\}:$\{heritrix.pwd\} --web-port
+       $\{heritrix.port\} --jobs-dir $\{weblab.data\}jobs --web-bind-hosts 192.168.1.114"}
+\end{DoxyCode}
+
+
+Processing Server (192.\+168.\+1.\+112) Heritrix Bean 
+\begin{DoxyCode}
+\textcolor{keyword}{property} name=\textcolor{stringliteral}{"commandLineArguments"} value=\textcolor{stringliteral}{" --web-admin $\{heritrix.user\}:$\{heritrix.pwd\} --web-port
+       $\{heritrix.port\} --jobs-dir $\{weblab.data\}jobs --web-bind-hosts 192.168.1.112"}
+\end{DoxyCode}
+
+
+Hosts The hosts file /etc/hosts must be modified on each Web\+Lab host to refleact the location of the solr-\/server and fuseki-\/server. These are as follow for a default installation, however I\+P addresses may differ from system to system.
+
+From the Portal Server (192.\+168.\+1.\+197) 192.\+168.\+1.\+112 solr-\/server fuseki-\/server
+
+From the Crawl Server (192.\+168.\+1.\+114) 192.\+168.\+1.\+112 fuseki-\/server
+
+From the Processing Server (192.\+168.\+1.\+112) localhost solr-\/server fuseki-\/server
+
+Exposed-\/configuration Portal Server (192.\+168.\+1.\+197) \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/conf/exposed-\/configuration/weblab-\/client.xml
+
+All references to localhost to be changed to 192.\+168.\+1.\+112
+
+Crawl Server (192.\+168.\+1.\+114) No change required
+
+Processing Server (192.\+168.\+1.\+112) \$\+C\+A\+T\+D\+\_\+\+H\+O\+M\+E/conf/exposed-\/configuration/weblab-\/client.xml
+
+\begin{DoxyVerb}All references to localhost to be changed to 192.168.1.112
+\end{DoxyVerb}
+\hypertarget{index_sec_7_2}{}\subsection{7.\+2	\+Backward Compatibility}\label{index_sec_7_2}
+\begin{DoxyVerb}Not applicable.
+\end{DoxyVerb}
+\hypertarget{index_sec_7_3}{}\subsection{7.\+3	\+Interoperability}\label{index_sec_7_3}
+ \begin{center} Figure 1.\+2.\+0 Liferay Web\+Lab -\/ Screen Shot \end{center} 
+
+ \begin{center} Figure 1.\+3.\+0 Heritrix -\/ Screen Shot \end{center} 
+
+ \begin{center} Figure 1.\+4.\+0 Hawtio -\/ Screen Shot \end{center} 
+
+ \begin{center} Figure 1.\+5.\+0 Fuski -\/ Screen Shot \end{center} \hypertarget{index_sec_8}{}\section{8.	\+System Resources, Performance and Capabilities}\label{index_sec_8}
+\begin{DoxyVerb}Performance can be impacted by the following.
+ - PC Specification and Performance.
+ - Web Server Specification and Performance
+ - Internet Connection Speed/Limitations
+ - Proxy Server Speed/Limitations
+ - Quantity and complexity of data to be analysed.
+\end{DoxyVerb}
+\hypertarget{index_sec_8_1}{}\subsection{8.\+1	\+System Resource Usage}\label{index_sec_8_1}
+\begin{DoxyVerb}Methods can be run simultaneously so could cause substantial impact to loacl PC and 
+Web Server performance, so use of this tool should be restricted to outside of business 
+hours..
+\end{DoxyVerb}
+\hypertarget{index_sec_8_2}{}\subsection{8.\+2	\+Limitations}\label{index_sec_8_2}
+\begin{DoxyVerb}TODO
+\end{DoxyVerb}
+\hypertarget{index_sec_8_3}{}\subsection{8.\+3	\+Expansion Considerations}\label{index_sec_8_3}
+\begin{DoxyVerb}New methods can be added due to the modular nature of the system.  The system comprises
+ of a number of web services, the inferencing system and an orcestration service.  The 
+ each service is combined into a chain using Apachie Camel.  These chains can be modified 
+ and enhansed services can be inserted into the chains as required.  
+\end{DoxyVerb}
+\hypertarget{index_sec_9}{}\section{9.	\+Reliability}\label{index_sec_9}
+\begin{DoxyVerb}The methods have been design to incorporate a standard interface to allow the 
+reporting of failures during test.
+
+It is the responsibility of the test developer to ensure this mechanism is implemented,
+to allow corrective action at the earliest opportunity. 
+
+TODO Elaborate
+\end{DoxyVerb}
+\hypertarget{index_sec_10}{}\section{10.	\+User Perspective and Info\+Source Impact}\label{index_sec_10}
+\begin{DoxyVerb}Not applicable.
+\end{DoxyVerb}
+\hypertarget{index_sec_10_1}{}\subsection{10.\+1	\+Service Provider}\label{index_sec_10_1}
+\begin{DoxyVerb}Not applicable.
+\end{DoxyVerb}
+\hypertarget{index_sec_10_2}{}\subsection{10.\+2	\+Subscriber}\label{index_sec_10_2}
+\begin{DoxyVerb}The CAT-D connects to the CAT-D web site in order to verify subscriber details.  Firewall and Proxy Server details must be made available to the tool.
+
+    - Subscriber Customisation Information
+
+@note The test developer can utilize locally stored files rather than web based files in order to reduce network traffic during debug, development, sanity and soak testing.
+\end{DoxyVerb}
+\hypertarget{index_sec_11}{}\section{11.	\+Detailed Design}\label{index_sec_11}
+\hypertarget{index_sec_11_1}{}\subsection{11.\+1	\+Overview}\label{index_sec_11_1}
+\begin{DoxyVerb}ToDo
+\end{DoxyVerb}
+\hypertarget{index_sec_11_2}{}\subsection{11.\+2	\+Subsystem Initialisation}\label{index_sec_11_2}
+\begin{DoxyVerb}CAT-D is a dynamic object and as such needs specific initialisation either from configuration files or default demonstrator files.
+\end{DoxyVerb}
+\hypertarget{index_sec_11_3}{}\subsection{11.\+3	\+Subsystem Interface}\label{index_sec_11_3}
+\begin{DoxyVerb}CAT-D exposes interfaces to the inferencing system and the user interface (UI).
+\end{DoxyVerb}
+\hypertarget{index_sec_12}{}\section{12.	\+Scenarios}\label{index_sec_12}
+\begin{DoxyVerb}ToDo
+\end{DoxyVerb}
+\hypertarget{index_sec_13}{}\section{13.	\+Test Considerations}\label{index_sec_13}
+\hypertarget{index_sec_13_1}{}\subsection{13.\+1	\+Lab and Tool Requirements}\label{index_sec_13_1}
+\begin{DoxyVerb}Server
+Internet connection
+Topics of interest
+Communities of place.
+ToDo - continue
+\end{DoxyVerb}
+\hypertarget{index_sec_13_2}{}\subsection{13.\+2	\+Integration Planning}\label{index_sec_13_2}
+\begin{DoxyVerb}Integration testing is performed on a known web site to ensure each method acts as stated in this document.
+An archive of preious site snapshots and social networking content wil be used to test the reproducability of 
+results for a known outcome.
+\end{DoxyVerb}
+\hypertarget{index_sec_13_3}{}\subsection{13.\+3	\+Stress Testing}\label{index_sec_13_3}
+\begin{DoxyVerb}Minimal stress testing will be performed during the proof of concept phase.
+\end{DoxyVerb}
+\hypertarget{index_sec_13_4}{}\subsection{13.\+4	\+Security Testing}\label{index_sec_13_4}
+\begin{DoxyVerb}Minimal security testing will be performed during the proof of concept phase.
+\end{DoxyVerb}
+\hypertarget{index_sec_13_5}{}\subsection{13.\+5	\+Adversarial Testing}\label{index_sec_13_5}
+\begin{DoxyVerb}Not applicable.
+\end{DoxyVerb}
+\hypertarget{index_sec_14}{}\section{14.	\+Practice Considerations}\label{index_sec_14}
+\begin{DoxyVerb}With the exception of avoiding sensitive or offensive search criteria as defined within the 
+requirements mapping section 2 subsection 4, there are no specific practice considerations.
+\end{DoxyVerb}
+\hypertarget{index_sec_15}{}\section{15.	\+Assessment of design}\label{index_sec_15}
+\hypertarget{index_sec_15_1}{}\subsection{15.\+1	$<$\+Subject$>$}\label{index_sec_15_1}
+\hypertarget{index_sec_15_1_1}{}\subsection{15.\+1.\+1	\+Comparison with Existing Functionality}\label{index_sec_15_1_1}
+\begin{DoxyVerb}Not applicable.
+\end{DoxyVerb}
+\hypertarget{index_sec_15_1_2}{}\subsection{15.\+1.\+2	\+Use}\label{index_sec_15_1_2}
+\begin{DoxyVerb}ToDo.
+\end{DoxyVerb}
+\hypertarget{index_sec_16}{}\section{16.	\+C\+A\+T-\/\+D Developers Reading List}\label{index_sec_16}
+\begin{DoxyVerb}A number of components and technologies are integrated into the CAT-D system.  The following ordered list, provides recommended reading material.
+
+
+Jenna (Apache)      https://jena.apache.org/getting_started/index.html 
+    RDF         https://jena.apache.org/tutorials/rdf_api.html
+    SPARQL      http://jena.apache.org/tutorials/sparql.html 
+    Ontology (OWL Models)   http://jena.apache.org/documentation/ontology 
+    Fuseki (SPARQL Server)  http://jena.apache.org/documentation/serving_data/
+        RESTful (Representaional State Transfer) 
+
+
+Key Knowledge
+Karaf (Apache) small OSGi http://karaf.apache.org (see user/developer guides)
+    OSGi (book: Enterprise OSGi in Action )
+
+Note: Camel is installed onto Karaf
+Camel               http://camel.apache.org/getting-started.html 
+        (book: Camel in Action) 
+    EIP             http://camel.apache.org/enterprise-integration-patterns.html 
+        (book: Enterprise Integration Patterns by Bobby Woolf) 
+    JMS http://docs.oracle.com/javaee/1.3/jms/tutorial/1_3_1-fcs/doc/jms_tutorialTOC.html 
+    ActiveMQ    http://activemq.apache.org/getting-started.html 
+
+
+Portlets (book: Portlets in Action, not recommended)
+
+Web Services (book: Java Web Services)
+    RESTful http://www.ibm.com/developerworks/webservices/library/ws-restful/ 
+        (POST, GET, PUT, DELETE => create, read, update, and delete (CRUD) )
+        (book: RESTful Web APIs)
+        JSON (JAva Script Object Notation)
+            Javascript
+    SOAP    http://www.w3schools.com/webservices/ws_soap_intro.asp 
+
+
+Schema (XML)    http://www.w3schools.com/Schema/ 
+    XML         http://www.w3schools.com/xml/default.asp 
+
+Spring      http://docs.spring.io/spring/docs/3.1.0.M1/spring-framework-reference/html/overview.html 
+
+JavaEE
+    TagLib (JSP)    http://www.tutorialspoint.com/jsp/taglib_directive.htm 
+
+Liferay https://www.liferay.com/documentation/liferay-portal/6.2/user-guide 
+DOM     http://www.w3.org/DOM/   http://www.w3schools.com/dom/dom_nodetype.asp 
+
+
+Nice to Have
+Maven       http://maven.apache.org/ 
+Tomcat      http://tomcat.apache.org/ 
+Solr        http://lucene.apache.org/solr/
+Heritrix    https://webarchive.jira.com/wiki/display/Heritrix/Heritrix 
+
+WebKit http://www.webkit.org
+\end{DoxyVerb}
+
+
+To\+Do -\/ update this list 

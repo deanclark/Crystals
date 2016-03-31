@@ -1,0 +1,6 @@
+<map id="com.crystalwink.crystalscommon.TileAbstract.TileAbstract.TileAbstract" name="com.crystalwink.crystalscommon.TileAbstract.TileAbstract.TileAbstract">
+<area shape="rect" id="node3" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1TileAbstract_1_1TileAbstract.html#aca434863bfaacb50b90f394e041f69c8" title="com.crystalwink.crystalscommon.\lTileAbstract.TileAbstract.setId" alt="" coords="308,5,529,51"/>
+<area shape="rect" id="node5" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1TileAbstract_1_1TileAbstract.html#ab25b4a87c6c5cd75fb5302d3227d6ae6" title="com.crystalwink.crystalscommon.\lTileAbstract.TileAbstract.setLbl" alt="" coords="308,74,529,121"/>
+<area shape="rect" id="node7" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1TileAbstract_1_1TileAbstract.html#a0b2c6921c056532b07eab0aec61e916d" title="com.crystalwink.crystalscommon.\lTileAbstract.TileAbstract.setOrientation" alt="" coords="293,143,544,190"/>
+<area shape="rect" id="node9" href="$classcom_1_1crystalwink_1_1crystalscommon_1_1TileAbstract_1_1TileAbstract.html#ae2b13b3fa6cbca8554db9df512f31866" title="com.crystalwink.crystalscommon.\lTileAbstract.TileAbstract.setNumber\lOfEdges" alt="" coords="301,213,536,277"/>
+</map>

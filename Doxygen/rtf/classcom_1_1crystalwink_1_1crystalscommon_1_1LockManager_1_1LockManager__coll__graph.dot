@@ -1,0 +1,6 @@
+digraph "com.crystalwink.crystalscommon.LockManager.LockManager"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  Node1 [label="{com.crystalwink.crystalscommon.\lLockManager.LockManager\n|~ MAX_LOCKS\l~ LOCK_PARAMETERS\l~ LOCK_ID\l~ LOCK_SEMAPHORE\l|+ LockManager()\l+ setMaxLocksAllowed()\l+ getMaxLocksAllowed()\l+ getLocksInUse()\l+ getLockId()\l+ isLocked()\l+ isLocked()\l+ removeLock()\l+ getRandomLockId()\l+ updateLock()\l+ getLockLevel()\l+ increaseLock()\l+ decreaseLock()\l}",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+}

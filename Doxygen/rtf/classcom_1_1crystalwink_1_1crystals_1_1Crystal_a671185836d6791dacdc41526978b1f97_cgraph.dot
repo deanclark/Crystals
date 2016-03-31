@@ -1,0 +1,25 @@
+digraph "com.crystalwink.crystals.Crystal.init"
+{
+  edge [fontname="Helvetica",fontsize="10",labelfontname="Helvetica",labelfontsize="10"];
+  node [fontname="Helvetica",fontsize="10",shape=record];
+  rankdir="LR";
+  Node1 [label="com.crystalwink.crystals.\lCrystal.init",height=0.2,width=0.4,color="black", fillcolor="grey75", style="filled" fontcolor="black"];
+  Node1 -> Node2 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node2 [label="com.crystalwink.crystals.\lCrystal.commonInit",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1Crystal.html#a77e2c89c7f988844a1bc7ea7923d7b9b"];
+  Node1 -> Node3 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node3 [label="com.crystalwink.crystals.\lCrystal.wireTilesWithCornerSegments",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1Crystal.html#ac9aa24b53594d7980dd0ae997e75088f"];
+  Node3 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node4 [label="com.crystalwink.crystalscommon.\lTile.Tile.getEdgeCount",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystalscommon_1_1Tile_1_1Tile.html#ad4b44b49321d5f6032b633cf4ff44de9"];
+  Node1 -> Node5 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node5 [label="com.crystalwink.crystals.\lCrystal.wireTilesWithEdgeSegments",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1Crystal.html#ada017a73a18eeb7c9e134eb2a114418f"];
+  Node5 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node6 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node6 [label="com.crystalwink.crystals.\lCrystal.wireTileNonEdgeSegments",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1Crystal.html#a89907bf5792a10cb05ffba6d26836984"];
+  Node6 -> Node4 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node1 -> Node7 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node7 [label="com.crystalwink.crystals.\lCrystal.activateWires",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1Crystal.html#a1206f1f4daf1ec8d02eb6cc0235d6d38"];
+  Node7 -> Node8 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node8 [label="com.crystalwink.crystalscommon.\lSegment.Segment.hasActiveWire",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystalscommon_1_1Segment_1_1Segment.html#aa010247ca1a75ef36bd17f9cff3d897d"];
+  Node1 -> Node9 [color="midnightblue",fontsize="10",style="solid",fontname="Helvetica"];
+  Node9 [label="com.crystalwink.crystals.\lCrystal.linkToAllGreyTiles",height=0.2,width=0.4,color="black", fillcolor="white", style="filled",URL="$classcom_1_1crystalwink_1_1crystals_1_1Crystal.html#a86256044a88131f79d53e048be92d513"];
+}

@@ -1,0 +1,6 @@
+<map id="com.crystalwink.crystals.FrameStructure.GridFrameStructure.selectRandomColour" name="com.crystalwink.crystals.FrameStructure.GridFrameStructure.selectRandomColour">
+<area shape="rect" id="node3" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#afee873bacdc5cb52ad2b7737e4cb4d25" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.is\lCorner" alt="" coords="324,5,567,69"/>
+<area shape="rect" id="node7" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#abf066aed77e0cc49a10f4599cdfc7e1e" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.\lGetLastColourIndex" alt="" coords="328,93,563,157"/>
+<area shape="rect" id="node9" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#aa10e9b6a6d97619171f5202e32b7154e" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.is\lColourAvailable" alt="" coords="324,181,567,245"/>
+<area shape="rect" id="node5" href="$classcom_1_1crystalwink_1_1crystals_1_1FrameStructure_1_1GridFrameStructure.html#ab94b654ffa6e903dfc4f032beaaa4f4d" title="com.crystalwink.crystals.\lFrameStructure.GridFrameStructure.get\lGridIndex" alt="" coords="617,5,868,69"/>
+</map>
