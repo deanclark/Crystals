@@ -21,35 +21,45 @@ public class FrameStructureTest {
 
     FrameStructure aFrameStructure;
 
-    // 4x4 frame
-    //int totalTestTiles  = 16;
-    // 16x16 frame
-//    int totalTestTiles  = 256;
-//    Tile tilesTestSet[] = new Tile[totalTestTiles];
-
     @Before
     public final void beginFrameStructureTest() {
         
         System.out.println("beginFrameStructureTest() - Start");
 
-//        int verticalRowTiles      = 4;
-//        int horizontalColumnCells = 4;
-//        
-//        for( int tileIndex = 0; tileIndex<totalTestTiles; tileIndex++)
-//        {
-//            int colours[] = {-1,-1,-1,-1};  // TODO not enough colours
-//            int scale = 1;
-//            int tileId = tileIndex+1;
-//            tilesTestSet[tileIndex] = new Tile(tileId, colours, scale);
-//        }
-//        
-//        aFrameStructure = new FrameStructure(verticalRowTiles, horizontalColumnCells, tilesTestSet, verticalRowTiles*horizontalColumnCells);
-//        aFrameStructure.loadTilesStatic4x4(); // 
-//        aFrameStructure.initFrame(verticalRowTiles, horizontalColumnCells);
-//        
-//        //aFrameStructure.getGridIndex(ROW_COL_SELECTION, row, col, SEGMENT_INDEX);
-//        // TODO verify structure
-//        aFrameStructure.dumpFrameToTxt();
+        // 4x4 frame
+        int totalTestTiles  = 16;
+        Tile tilesTestSet[] = new Tile[totalTestTiles];
+        
+        int verticalRowTiles      = 4;
+        int horizontalColumnCells = 4;
+        
+        for( int tileIndex = 0; tileIndex<totalTestTiles; tileIndex++)
+        {
+            int colours[] = {-1,-1,-1,-1};  // TODO not enough colours
+            int scale = 1;
+            int tileId = tileIndex+1;
+            tilesTestSet[tileIndex] = new Tile(tileId, colours, scale);
+        }
+        
+        
+        System.out.println("       0, 1, 2, 3, 4");
+        System.out.println("   0    -  -  -  -  ");
+        System.out.println("   1   |  |  |  |  |");
+        System.out.println("   2    -  -  -  -  ");
+        System.out.println("   3   |  |  |  |  |");
+        System.out.println("   4    -  -  -  -  ");
+        System.out.println("   5   |  |  |  |  |");
+        System.out.println("   6    -  -  -  -  ");
+        System.out.println("   7   |  |  |  |  |");
+        System.out.println("   8    -  -  -  -  ");
+
+        aFrameStructure = new FrameStructure(verticalRowTiles, horizontalColumnCells, tilesTestSet, verticalRowTiles*horizontalColumnCells);
+        aFrameStructure.loadTilesStatic4x4(); // 
+        aFrameStructure.initFrame(verticalRowTiles, horizontalColumnCells);
+        
+        //aFrameStructure.getGridIndex(ROW_COL_SELECTION, row, col, SEGMENT_INDEX);
+        // TODO verify structure
+        aFrameStructure.dumpFrameToTxt();
         
         System.out.println("beginFrameStructureTest() - End");
         
@@ -64,14 +74,15 @@ public class FrameStructureTest {
         
         for( int tileId = 0; tileId<totalTestTiles; tileId++)
         {
-            int colours[] = {-1,-1,-1,-1};
+            //int colours[] = {-1,-1,-1,-1};
+            int colours[] = {0,1,2,3};
             int scale = 1;
             tilesTestSet[tileId] = new Tile(tileId+1, colours, scale);
         }
         
         // TODO populate tilesTestSet from tile definition file
         // TODO loadTilesFromFile populates a panel.tiles this need to be moved as panel is not relavent to this test 
-        Crystal.loadTilesFromFile("/home/dean.clark/workspace/Codility/Crystals/src/e2pieces.txt");    // use local tile definition
+        Crystal.loadTilesFromFile("src/e2pieces.txt");    // use local tile definition
 
         int verticalRowTiles      = 4;
         int horizontalColumnCells = 4;
@@ -409,6 +420,15 @@ public class FrameStructureTest {
 
         // 4x4 frame
         Tile tilesTestSet[] = new Tile[totalTestTiles];
+        //Crystal.loadTilesFromFile("src/e2pieces.txt");    // use local tile definition
+        for( int tileId = 0; tileId<totalTestTiles; tileId++)
+        {
+            //int colours[] = {-1,-1,-1,-1};
+            int colours[] = {0,1,2,3};
+            int scale = 1;
+            tilesTestSet[tileId] = new Tile(tileId+1, colours, scale);
+        }
+        
 
         FrameStructure anotherFrameStructure = new FrameStructure(verticalRowTiles, horizontalColumnCells, tilesTestSet, totalTestTiles);
         // for some reason availableColoursFromTiles is called within initFrame which is called in the constructor FrameStructure() 
@@ -420,21 +440,29 @@ public class FrameStructureTest {
         anotherFrameStructure.dumpFrameToTxt();
         
         System.out.println("testLoadTilesStatic4x4() - End");
-        fail("Not yet implemented"); // TODO
+        //fail("Not yet implemented"); // TODO
     }
 
     @Test
     public final void testLoadTilesStatic16x16() {
         System.out.println("testLoadTilesStatic16x16() - Start");
-        int verticalRowTiles      = 8;
-        int horizontalColumnCells = 8;
+        int verticalRowTiles      = 16;
+        int horizontalColumnCells = 16;
         
         int totalTestTiles  = 256;
         Tile tilesTestSet[] = new Tile[totalTestTiles];
+        for( int tileId = 0; tileId<totalTestTiles; tileId++)
+        {
+            //int colours[] = {-1,-1,-1,-1};
+            int colours[] = {0,1,2,3};
+            int scale = 1;
+            tilesTestSet[tileId] = new Tile(tileId+1, colours, scale);
+        }
+        
 
-        int ntiles = totalTestTiles;
+//        int ntiles = totalTestTiles;
 
-        FrameStructure anotherFrameStructure = new FrameStructure(verticalRowTiles, horizontalColumnCells, tilesTestSet, ntiles);
+        FrameStructure anotherFrameStructure = new FrameStructure(verticalRowTiles, horizontalColumnCells, tilesTestSet, totalTestTiles);
         // for some reason availableColoursFromTiles is called within initFrame which is called in the constructor FrameStructure() 
 
         if(anotherFrameStructure != null)
@@ -450,7 +478,7 @@ public class FrameStructureTest {
 
         
         System.out.println("testLoadTilesStatic16x16() - End");
-        fail("Not yet implemented"); // TODO
+        //fail("Not yet implemented"); // TODO
     }
 
     @Test
@@ -510,7 +538,8 @@ public class FrameStructureTest {
             }
             
             // sum all cells and verify result
-            assert(maxTiles != 256); // should be 256
+            //assert(maxTiles != 256); // should be 256
+            assertEquals( maxTiles, 256);
 
             combinedtileId -= maxTiles/2;  // triangular sumation of the sequence from 1 through 256 is 32768
             long expectedSum   = Math.round(Math.pow(CrystalGlobals.MAX_ROWS*CrystalGlobals.MAX_COLUMNS,2) /2); // 32768

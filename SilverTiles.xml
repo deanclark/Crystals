@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tiles>
+<name>Silver</name>
+<sides>3</sides>
+<patternType>path</patternType>
+<maxPathNodesPerSide>11</maxPathNodesPerSide>
+
+<tile>
+  <index>1</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,5:1,3</path>
+      <path>1,10:2,6</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,7:2,7</path>
+      <path>0,11:1,4</path>
+      <path>1,7:2,3</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>2</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,6:2,11</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,2:2,10</path>
+      <path>1,4:2,9</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>3</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,6:1,3</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,7:1,6</path>
+      <path>1,9:2,8</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>4</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>2,1:2,10</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,11:1,3</path>
+      <path>1,9:2,3</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>5</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,3:1,10</path>
+      <path>0,11:1,3</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,1:0,6</path>
+      <path>1,1:2,7</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>6</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,6:2,9</path>
+      <path>1,9:2,5</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,4:2,2</path>
+      <path>0,10:1,8</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>7</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,8:2,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,10:1,3</path>
+      <path>1,7:2,10</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>8</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,2:1,10</path>
+      <path>0,9:1,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+      <path>0,3:2,11</path>
+      <path>0,8:1,9</path>
+      <path>1,11:2,3</path>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>9</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,5:0,8</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>10</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,8:1,3</path>
+      <path>1,9:2,2</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>11</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,3:2,9</path>
+      <path>0,7:2,2</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>12</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,9:1,6</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>13</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,3:0,9</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>14</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,6:2,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>15</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,6:2,8</path>
+      <path>1,6:2,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>16</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>2,4:2,10</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>17</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,6:2,9</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>18</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,6:2,6</path>
+      <path>0,7:1,6</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>19</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,2:2,6</path>
+      <path>0,6:1,4</path>
+      <path>1,7:2,3</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>20</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,3:2,6</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>21</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,2:2,9</path>
+      <path>0,11:1,3</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>22</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,1:2,9</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>23</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>2,5:2,6</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>24</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,1:1,9</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>25</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,2:1,8</path>
+      <path>0,8:1,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>26</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,3:2,9</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>27</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,4:2,9</path>
+      <path>0,8:1,1</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>28</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,3:2,9</path>
+      <path>1,3:2,2</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>29</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,6:2,7</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>30</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,3:2,8</path>
+      <path>1,10:2,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>31</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>0,8:1,4</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+<tile>
+  <index>32</index>
+  <image></image>
+  <paths>
+    <pathset>
+      <name>white</name>
+      <path>1,3:1,8</path>
+    </pathset>
+    <pathset>
+      <name>gold</name>
+    </pathset>
+  </paths>
+</tile>
+
+</tiles>
+

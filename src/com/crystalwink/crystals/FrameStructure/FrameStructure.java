@@ -74,7 +74,7 @@ public class FrameStructure extends GridFrameStructure{
 
         
         // import from XML file
-        String filename = "/home/dean.clark/workspace/Codility/Crystals/SilverTiles.xml";
+        String filename = "SilverTiles.xml";
         //String filename = "/opt/catd/data/catd/twitter-raw/236/wales/CATD-TwitterStream-1440388948176.xml";
         // see http://comments.gmane.org/gmane.comp.cms.wyona.user/93
         //  <!ENTITY hellip   "&#8230;" ><!-- horizontal ellipsis = three dot leader, U+2026 ISOpub  -->
@@ -1343,10 +1343,12 @@ public class FrameStructure extends GridFrameStructure{
         System.out.println("availableColoursFromTiles " + nTilesLocal + " tiles");
         for (int aTileIndex = 0; aTileIndex < nTilesLocal; aTileIndex++) {
             for (int segmentIndex = 0; segmentIndex < SEGMENTS_PER_TILE; segmentIndex++) {
-                ++totalColours[tilesLocal[aTileIndex].tileSegment[segmentIndex].colour];
-
-                totalAvailableColours++;
-            }
+            	if(tilesLocal[aTileIndex].tileSegment[segmentIndex].colour >= 0)
+            	{
+                    ++totalColours[ tilesLocal[aTileIndex].tileSegment[segmentIndex].colour ];  // Investigate causes a UnitTest failure due to ArrayOutOfBounds-1 in beginFrameStructureTest() testSimpleFrame() 
+            		totalAvailableColours++;
+            	}
+             }
         }
         // debug missing colours (total 1000 should be 1024
         System.out.println("availableColoursFromTiles totalAvailableColours:" + totalAvailableColours);

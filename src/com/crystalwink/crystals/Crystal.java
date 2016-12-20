@@ -185,8 +185,7 @@ public class Crystal extends Applet implements ActionListener, ItemListener
         System.out.printf("**** TEST loadTilesURL() Start ****\n");
         //loadTilesURL();
         if (panel.getNumberOfTiles() < 1) {
-            //loaded = loadTilesFromFile("e2pieces.txt");    // use local tile definition
-            loaded = loadTilesFromFile("/home/dean.clark/workspace/Codility/Crystals/src/e2pieces.txt");    // use local tile definition
+            loaded = loadTilesFromFile("src/e2pieces.txt");    // use local tile definition
             
         }
         if(!loaded)

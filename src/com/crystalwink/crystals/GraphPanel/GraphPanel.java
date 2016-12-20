@@ -57,7 +57,7 @@ public class GraphPanel extends Panel
     //******* THERE ARE TWO(2) IMPLEMENTATION ATTEMPTS controlled by the flag below - try both *******// 
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     // public static final boolean showFloatingTiles = true; // prevent display of floating tiles
-    public static boolean showFloatingTiles = false; // prevent display of floating tiles
+    public static boolean showFloatingTiles = true; // prevent display of floating tiles
     public static boolean runFast = !showFloatingTiles; // = true; // when fast the UI will appear to stutter as frames are only updated periodically 
     
 //    public Tile tiles[] = new Tile[CrystalGlobals.MAX_TILES];
