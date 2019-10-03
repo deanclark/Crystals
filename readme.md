@@ -14,13 +14,13 @@ This software is incomplete and although will never solve the 64x64 tile problem
 #### Random Infill Placement: 
 ![alt text][4][3]
   [4]: Doxygen/Screenshot-Crystals-randomFill.png
-  [3]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-randmonFill.png "Image of tiles following random infill using remaining tiles"
+  [3]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-randomFill.png "Image of tiles following random infill using remaining tiles"
 
 
 #### Random Infill Placement with gaps showing: 
 ![alt text][6][5]
   [6]: Doxygen/Screenshot-Crystals-randomFill2.png
-  [5]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-randmonFill2.png "Image of tiles with random infill 2  using remaining tiles"
+  [5]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-randomFill2.png "Image of tiles with random infill 2  using remaining tiles"
 
 #### Floating Tiles Illustrating the animated elasticity : 
 ![alt text][8][7]
@@ -31,7 +31,7 @@ This software is incomplete and although will never solve the 64x64 tile problem
 #### Floating Tiles with interconnecting wires: 
 ![alt text][10][9]
   [10]: Doxygen/Screenshot-Crystals-floatingWires.png
-  [9]: https://github.com/deanclark/Crystals/Doxygen/Screenshot-Crystals-floatingWires.png "Image of interconnected floating tiles"
+  [9]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-floatingWires.png "Image of interconnected floating tiles"
 
 
 Controls
