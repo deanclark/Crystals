@@ -8,24 +8,24 @@ This software is incomplete and although will never solve the 64x64 tile problem
 #### Tile Placement: 
 ![alt text][2][1]
   [2]: Doxygen/Screenshot-Crystals-tiles.png
-  [1]: https://github.com/deanclark/Crystals/Doxygen/Screenshot-Crystals-tiles.png "Image of tiles place on the placement area"
+  [1]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-tiles.png "Image of tiles place on the placement area"
 
 
 #### Random Infill Placement: 
 ![alt text][4][3]
   [4]: Doxygen/Screenshot-Crystals-randomFill.png
-  [3]: https://github.com/deanclark/Crystals/Doxygen/Screenshot-Crystals-randmonFill.png "Image of tiles following random infill using remaining tiles"
+  [3]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-randmonFill.png "Image of tiles following random infill using remaining tiles"
 
 
 #### Random Infill Placement with gaps showing: 
 ![alt text][6][5]
   [6]: Doxygen/Screenshot-Crystals-randomFill2.png
-  [5]: https://github.com/deanclark/Crystals/Doxygen/Screenshot-Crystals-randmonFill2.png "Image of tiles with random infill 2  using remaining tiles"
+  [5]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-randmonFill2.png "Image of tiles with random infill 2  using remaining tiles"
 
 #### Floating Tiles Illustrating the animated elasticity : 
 ![alt text][8][7]
   [8]: Doxygen/Screenshot-Crystals-floating.png
-  [7]: https://github.com/deanclark/Crystals/Doxygen/Screenshot-Crystals-floating.png "Image of floating tiles where the elastic tension between tile is being used to attract neighbouring tiles"
+  [7]: https://github.com/deanclark/Crystals/blob/master/Doxygen/Screenshot-Crystals-floating.png "Image of floating tiles where the elastic tension between tile is being used to attract neighbouring tiles"
 
 
 #### Floating Tiles with interconnecting wires: 
