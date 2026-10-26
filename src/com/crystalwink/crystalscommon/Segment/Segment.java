@@ -52,7 +52,7 @@ public class Segment {
             if (connectedWires[aConnectedWire].fromTile == activeWire.fromTile &&
                     connectedWires[aConnectedWire].fromSegment == activeWire.fromSegment &&
                     connectedWires[aConnectedWire].toTile == activeWire.toTile &&
-                    connectedWires[aConnectedWire].fromSegment == activeWire.fromSegment) {
+                    connectedWires[aConnectedWire].toSegment == activeWire.toSegment) {
                 connectedWires[aConnectedWire].wireActive = true;
             }
         }

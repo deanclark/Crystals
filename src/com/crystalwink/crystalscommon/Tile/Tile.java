@@ -101,6 +101,29 @@ public class Tile extends TileAbstract {
         tileSegment[2] = new Segment();
         tileSegment[3] = new Segment();
 
+        layoutSegments();
+
+        if ((Trace.debugLevel & Trace.DEBUG_GENERAL) == Trace.DEBUG_GENERAL) {
+            System.out.printf("end Tile Constructor tileId=%d\n", tileId);
+        }
+    }
+
+    /**
+     * Set the size the tile is displayed at and re-lay out the segment points of this tile.
+     * Existing segments (colours and wires) are retained.
+     */
+    public void rescale(int newScale) {
+        segmentScale = newScale;
+        layoutSegments();
+        moved(true);
+    }
+
+    /**
+     * Calculate the polygon points of the four triangular segments from the current segmentScale.
+     * The tile is a square of segmentScale x segmentScale centred on its world space location, so two tiles
+     * whose centres are segmentScale apart butt up exactly.
+     */
+    public void layoutSegments() {
         // all share the same centre point
         for (int ii = 0; ii < segmentCount; ii++) {
 //            System.out.printf("Tile init ii-%d\n", ii);
@@ -144,10 +167,6 @@ public class Tile extends TileAbstract {
         // Wire Point
         tileSegment[3].xPointArray[WireLinkIndex] = -segmentScale / 2;
         tileSegment[3].yPointArray[WireLinkIndex] = 0;
-
-        if ((Trace.debugLevel & Trace.DEBUG_GENERAL) == Trace.DEBUG_GENERAL) {
-            System.out.printf("end Tile Constructor tileId=%d\n", tileId);
-        }
     }
 
     public static int getSegmentScale()

@@ -80,6 +80,26 @@ public class GraphPanel extends Panel
     public boolean drawRotationModeCheckbox;
     public boolean wireframeTileModeCheckbox = true;
     public boolean showWiresModeCheckbox;
+    public boolean largeTilesCheckbox;
+    public static final int TILE_SCALE_NORMAL = 15;   // matches the scale tiles are created with
+    public static final int TILE_SCALE_LARGE = 28;
+
+    /**
+     * Change the size tiles are displayed at. Tiles keep their centres and are then pushed apart on the next
+     * relax() so that they butt up rather than overlap at the new size.
+     */
+    public synchronized void setTileScale(int scale) {
+        Tile.setSegmentScale(scale);
+        for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+            tiles[tileIndex].rescale(scale);
+        }
+        if (aFrame != null) {
+            boolean large = scale >= TILE_SCALE_LARGE;
+            FrameStructure.LINE_LENGTH = large ? 40 : 6;
+            FrameStructure.CELL_SCALE = large ? 40 : 6;
+        }
+        repaint();
+    }
     int numMouseButtonsDown = 0;
 
     /**
@@ -644,7 +664,7 @@ public class GraphPanel extends Panel
                                     }
 
                                     if (relativePriY > relativeSecY) {
-                                        dy = relativePriY - secondaryTile.yWorldSpace;
+                                        dy = relativePriY - relativeSecY;
                                         secondaryTile.dy += dy * lengthAdjustment;
                                     } else {
                                         dy = relativeSecY - relativePriY;
@@ -896,16 +916,16 @@ public class GraphPanel extends Panel
                     if (eachTile.xWorldSpace < (Tile.segmentScale / 2)) {
                         eachTile.xWorldSpace = (Tile.segmentScale / 2);
                     } // move away from right edge
-                    else if (eachTile.xWorldSpace > (dimension.width - Tile.segmentScale)) {   // segmentScale
-                        eachTile.xWorldSpace = dimension.width - Tile.segmentScale;
+                    else if (eachTile.xWorldSpace > (dimension.width - Tile.segmentScale / 2)) {
+                        eachTile.xWorldSpace = dimension.width - Tile.segmentScale / 2;
                     }
 
                     // move away from upper/top edge
                     if (eachTile.yWorldSpace < (Tile.segmentScale / 2)) {
                         eachTile.yWorldSpace = (Tile.segmentScale / 2);
                     } // move away from lower/bottom edge
-                    else if (eachTile.yWorldSpace > dimension.height - Tile.segmentScale) {  // segmentScale
-                        eachTile.yWorldSpace = dimension.height - Tile.segmentScale;
+                    else if (eachTile.yWorldSpace > dimension.height - Tile.segmentScale / 2) {
+                        eachTile.yWorldSpace = dimension.height - Tile.segmentScale / 2;
                     }
                     // decelerate
                     eachTile.dx /= 2;
@@ -970,14 +990,11 @@ public class GraphPanel extends Panel
         for (int pass = 0; pass < 4; pass++) {
             for (int firstIndex = 0; firstIndex < numberOfTiles; firstIndex++) {
                 Tile firstTile = tiles[firstIndex];
-                boolean firstCanMove = !tileLockManager.isLocked(firstTile.getId(), Tile.TEMPORARY_LOCKED);
+                boolean firstLocked = tileLockManager.isLocked(firstTile.getId(), Tile.TEMPORARY_LOCKED);
 
                 for (int secondIndex = firstIndex + 1; secondIndex < numberOfTiles; secondIndex++) {
                     Tile secondTile = tiles[secondIndex];
-                    boolean secondCanMove = !tileLockManager.isLocked(secondTile.getId(), Tile.TEMPORARY_LOCKED);
-                    if (!firstCanMove && !secondCanMove) {
-                        continue;
-                    }
+                    boolean secondLocked = tileLockManager.isLocked(secondTile.getId(), Tile.TEMPORARY_LOCKED);
 
                     double deltaX = secondTile.xWorldSpace - firstTile.xWorldSpace;
                     double deltaY = secondTile.yWorldSpace - firstTile.yWorldSpace;
@@ -985,6 +1002,17 @@ public class GraphPanel extends Panel
                     double overlapY = minimumSeparation - Math.abs(deltaY);
                     if (overlapX <= 0 || overlapY <= 0) {
                         continue;
+                    }
+
+                    // An unlocked tile always yields to a locked one. When both are locked (e.g. a wire has just
+                    // pulled one tile onto a neighbour) the more weakly locked tile yields so tiles never overlap.
+                    boolean firstCanMove = !firstLocked;
+                    boolean secondCanMove = !secondLocked;
+                    if (firstLocked && secondLocked) {
+                        int firstLevel = tileLockManager.getLockLevel(firstTile.getId());
+                        int secondLevel = tileLockManager.getLockLevel(secondTile.getId());
+                        firstCanMove = firstLevel <= secondLevel;
+                        secondCanMove = secondLevel <= firstLevel;
                     }
 
                     double direction = deltaX == 0 && deltaY == 0
@@ -1128,7 +1156,7 @@ public class GraphPanel extends Panel
         else
         {
             // display frameStructure based implementation.  also runs the update for the frameStructure base implementation
-            Crystal.panel.aFrame.drawFrame(offScreenGraphics, palate);          // display frame based implementation
+            Crystal.panel.aFrame.drawFrame(offScreenGraphics, palate, wireframeTileModeCheckbox);          // display frame based implementation
             
         }
         

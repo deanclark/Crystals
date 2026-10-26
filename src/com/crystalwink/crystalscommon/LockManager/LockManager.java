@@ -211,10 +211,11 @@ public class LockManager {
     public int decreaseLock(int lockId, int decrement) {
         int lockIndex = getPrivateLockIndex(lockId);
 
-        // if lock exists, decrement
-        if (lockIndex != -1) {
-            locks[lockIndex][LOCK_SEMAPHORE] -= decrement;
+        if (lockIndex == -1) {
+            return -1;  // lock does not exist
         }
+
+        locks[lockIndex][LOCK_SEMAPHORE] -= decrement;
 
         // delete lock if semaphore released (i.e <= 0)
         if (locks[lockIndex][LOCK_SEMAPHORE] <= 0) {

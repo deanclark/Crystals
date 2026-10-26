@@ -78,6 +78,7 @@ public class Crystal extends Applet implements ActionListener, ItemListener
     Checkbox wireframeTile;        // wireframeTile
     Checkbox showWires;            // showWires
     Checkbox showFloatingTilesCheckbox; // showFloatingTiles
+    Checkbox largeTile;            // largeTilesCheckbox (tile display size, both modes)
     
 
     int wireLength = 10;
@@ -99,6 +100,7 @@ public class Crystal extends Applet implements ActionListener, ItemListener
         wireframeTile = new Checkbox("Wireframe");
         showWires = new Checkbox("Wires");
         showFloatingTilesCheckbox = new Checkbox("Floating");
+        largeTile = new Checkbox("Large");
 
         if(CrystalGlobals.ModeOfOperation == CrystalGlobals.MODE_ELASTIC)
         {
@@ -112,7 +114,7 @@ public class Crystal extends Applet implements ActionListener, ItemListener
             button1 = new Button("  Show  ");
             button2 = new Button("Infill "); //
             checkBox1 = new Checkbox("Random"); // randomFillMode
-            checkBox2 = new Checkbox("Large"); // Large or activeWiresCheckbox
+            checkBox2 = new Checkbox("Active"); // activeWiresCheckbox
         }
 
         controlPanel.add(button1);
@@ -141,6 +143,10 @@ public class Crystal extends Applet implements ActionListener, ItemListener
             wireframeTile.addItemListener(this);
             wireframeTile.setState(panel.wireframeTileModeCheckbox);
         
+        controlPanel.add(largeTile);
+            largeTile.addItemListener(this);
+            largeTile.setState(panel.largeTilesCheckbox);
+
         controlPanel.add(showWires);
             showWires.addItemListener(this);
             showWires.setState(panel.showWiresModeCheckbox);
@@ -601,24 +607,13 @@ public class Crystal extends Applet implements ActionListener, ItemListener
         else if (src == showTileIdCheckbox) {
             panel.showTileIdCheckbox = on;
             
-        } else if (src == checkBox2) {    // Active/Large
-            if(CrystalGlobals.ModeOfOperation == CrystalGlobals.MODE_FRAME_SINGLE_PATH)
-            {
-                panel.randomModeCheckbox = on;
-                
-                if(panel.randomModeCheckbox) {
-                    FrameStructure.LINE_LENGTH = 40;
-                    FrameStructure.CELL_SCALE = 40;
-                }
-                else
-                {
-                    FrameStructure.LINE_LENGTH = 6; // 40
-                    FrameStructure.CELL_SCALE = 6; // 40
-                }
-            }
-            else
-                panel.activeWiresCheckbox = on;
-            
+        } else if (src == checkBox2) {    // Active (floating mode only)
+            panel.activeWiresCheckbox = on;
+
+        } else if (src == largeTile) {    // tile display size, both modes
+            panel.largeTilesCheckbox = on;
+            panel.setTileScale(on ? GraphPanel.TILE_SCALE_LARGE : GraphPanel.TILE_SCALE_NORMAL);
+
         } else if (src == drawRotation) {
             panel.drawRotationModeCheckbox = on;
             
@@ -644,6 +639,7 @@ public class Crystal extends Applet implements ActionListener, ItemListener
             button2.setLabel("Shake");
             checkBox1.setLabel("Random");
             checkBox2.setLabel("Active");
+            checkBox2.setVisible(true);
 
         }
         else // if (panel.showFloatingTilesCheckbox == off)
@@ -654,7 +650,7 @@ public class Crystal extends Applet implements ActionListener, ItemListener
             button1.setLabel("  Show  ");
             button2.setLabel("Infill ");
             checkBox1.setLabel("Random");
-            checkBox2.setLabel("Large");
+            checkBox2.setVisible(false);   // "Active" only applies to the floating wires
 
         }
 

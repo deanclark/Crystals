@@ -545,6 +545,16 @@ public class FrameStructure extends GridFrameStructure{
      * @param palate
      */
     public void drawFrame(Graphics offScreenGraphics, Color palate[]) {
+        drawFrame(offScreenGraphics, palate, true);
+    }
+
+    /**
+     * Draw one frame of the search and the tiles placed so far.
+     *
+     * @param wireframeTile true draws each placed tile as outlined coloured segments (wireframe),
+     *                      false fills each segment with its colour
+     */
+    public void drawFrame(Graphics offScreenGraphics, Color palate[], boolean wireframeTile) {
         //boolean runFast = true;// = false; //
 
         final int nPolyPoints = 5;
@@ -877,6 +887,8 @@ public class FrameStructure extends GridFrameStructure{
             }
         }
 
+        drawPlacedTiles(offScreenGraphics, palate, wireframeTile);
+
         // Show frequency spectrum carrier wave
         if (!asPoly) {
             //offScreenGraphics.drawImage(panel.offScreenImage, 0, 0, null);
@@ -933,6 +945,62 @@ public class FrameStructure extends GridFrameStructure{
      * @param col
      * @param LockLevel
      */
+    /**
+     * Draw every cell of the frame that has at least one edge colour assigned as a tile made of four
+     * triangular segments (top, right, bottom, left).
+     */
+    private void drawPlacedTiles(Graphics graphics, Color palate[], boolean wireframeTile) {
+        int[] edges = new int[4];
+        for (int row = 0; row < VerticalRowCells; row++) {
+            for (int col = 0; col < HorizontalColumnCells; col++) {
+                edges[0] = frameArray[2 * row][col];           // top
+                edges[1] = frameArray[2 * row + 1][col + 1];   // right
+                edges[2] = frameArray[2 * row + 2][col];       // bottom
+                edges[3] = frameArray[2 * row + 1][col];       // left
+                drawCell(graphics, palate, edges, col * CELL_SCALE, row * CELL_SCALE, CELL_SCALE, wireframeTile);
+            }
+        }
+    }
+
+    /**
+     * Draw one tile as four triangular segments meeting at the centre of the cell.
+     *
+     * @param edges        colour index of the top, right, bottom and left edge, negative when not yet assigned
+     * @param wireframe    true outlines each segment in its colour, false fills it
+     */
+    public static void drawCell(Graphics graphics, Color palate[], int[] edges, int x, int y, int size, boolean wireframe) {
+        boolean anyEdge = false;
+        for (int edge : edges) {
+            anyEdge |= edge >= CrystalGlobals.COLOUR_GREY;
+        }
+        if (!anyEdge || size < 2) {
+            return;
+        }
+
+        int centreX = x + size / 2;
+        int centreY = y + size / 2;
+        int[][] cornerX = {{x, x + size}, {x + size, x + size}, {x + size, x}, {x, x}};
+        int[][] cornerY = {{y, y}, {y, y + size}, {y + size, y + size}, {y + size, y}};
+
+        for (int segment = 0; segment < 4; segment++) {
+            if (edges[segment] < CrystalGlobals.COLOUR_GREY) {
+                continue;  // edge not assigned yet
+            }
+            int[] xs = {cornerX[segment][0], cornerX[segment][1], centreX};
+            int[] ys = {cornerY[segment][0], cornerY[segment][1], centreY};
+            graphics.setColor(palate[edges[segment]]);
+            if (wireframe) {
+                graphics.drawPolygon(xs, ys, 3);
+            } else {
+                graphics.fillPolygon(xs, ys, 3);
+            }
+        }
+
+        // outline the tile
+        graphics.setColor(palate[CrystalGlobals.COLOUR_GREY]);
+        graphics.drawRect(x, y, size, size);
+    }
+
     public void resetTile(int row, int col, int LockLevel, boolean overrideNeighbourProtection) {
         //int id = -1;
         //int colours[] = new int[SEGMENTS_PER_TILE];
