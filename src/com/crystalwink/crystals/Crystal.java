@@ -681,10 +681,8 @@ public class Crystal extends Applet implements ActionListener, ItemListener
     public void loadTilesURL() {
         int tileIndex = 0;
         int segmentIndex = 0;
-//        String objectName = "http://192.168.0.9/e2Samplepieces.txt";
-//        String objectName = "http://192.168.0.9/e2pieces.txt";                    // 16x16  256 tile puzzle
-        //    String objectName = "http://deanohome.dyndns.org/e2pieces.txt";
-        String objectName = "http://deanohome.dyndns.org/e2Samplepieces.txt";       // 4x4    16 tile puzzle
+        //  String objectName = "http://example.com/e2pieces.txt";                    // 16x16  256 tile puzzle
+        String objectName = "http://example.com/e2Samplepieces.txt";       // 4x4    16 tile puzzle
         int colour[] = new int[4];
 
         System.out.println("loadTilesURL attempting to open file " + objectName);
@@ -849,7 +847,6 @@ public class Crystal extends Applet implements ActionListener, ItemListener
                 System.out.println("NumberFormatException in loadHintTilesFromFile!");
             }
 
-        // https://ems.southglos.gov.uk/admit_transfer/at_welcome.asp
         } catch (java.io.FileNotFoundException e) {
             System.out.println("cannot open file " + objectName);
         } catch (java.io.IOException e) {

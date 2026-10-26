@@ -1,0 +1,55 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group = 'com.crystalwink'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+            exclude '**/*Test.java'
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src', 'test']
+            include '**/*Test.java'
+        }
+    }
+}
+
+dependencies {
+    implementation files('test/lib/junit.jar')
+    testImplementation files('test/lib/junit.jar', 'test/lib/hamcrest-core-3.1.jar')
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 11
+    options.encoding = 'UTF-8'
+    options.compilerArgs.add('-Xlint:-options')
+}
+
+application {
+    mainClass = 'com.crystalwink.crystals.GraphPanel.GraphPanel'
+}
+
+tasks.named('jar') {
+    manifest {
+        attributes 'Main-Class': application.mainClass.get()
+    }
+}
+
+tasks.register('crystalsCommonJar', Jar) {
+    archiveFileName = 'CrystalsCommon.jar'
+    destinationDirectory = layout.buildDirectory.dir('android-libs')
+    from(sourceSets.main.output) {
+        include 'com/crystalwink/crystalscommon/**'
+    }
+}

@@ -1,11 +1,9 @@
 package com.crystalwink.crystalscommon.Tile;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.crystalwink.crystalscommon.Segment.Segment;
 
 public class TileTest {
 
@@ -87,6 +85,18 @@ public class TileTest {
         aTile.initTileColours(coloursSet);
         
         //fail("Not yet implemented");
+    }
+
+    @Test
+    public void testCornerEdgeCountCanBeReinitialized() {
+        int[] cornerColours = {0, 0, 2, 3};
+        int[] rotatedCornerColours = {1, 0, 0, 3};
+
+        aTile.initTileColours(cornerColours);
+        assertEquals(2, aTile.checkForEdgeSegments());
+
+        aTile.initTileColours(rotatedCornerColours);
+        assertEquals(2, aTile.checkForEdgeSegments());
     }
 
     @Test

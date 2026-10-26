@@ -5,8 +5,8 @@
 
 package com.crystalwink.crystalscommon.Tile;
 
-import com.crystalwink.crystalscommon.TileAbstract.TileAbstract;
 import com.crystalwink.crystalscommon.Segment.Segment;
+import com.crystalwink.crystalscommon.TileAbstract.TileAbstract;
 import com.crystalwink.crystalscommon.Trace;
 
 /**
@@ -331,6 +331,13 @@ public class Tile extends TileAbstract {
     // edgesTiles only connect nextToEdgeSegments[2] to other nextToEdgeSegments[2] (corners done in step above)
     // edgeTiles only connect edgeOppositeSegment to numberOfEdgeSegments=0 Tiles
     public int checkForEdgeSegments() {
+        numberOfEdgeSegments = 0;
+        indexOppositeEdge = -1;
+        for (int edgeIndex = 0; edgeIndex < indexOfEdgeSegment.length; edgeIndex++) {
+            indexOfEdgeSegment[edgeIndex] = -1;
+            nextToEdgeSegments[edgeIndex] = -1;
+        }
+
         // count each edge segment of each Tile
         // for eachTile on init
         // for tiles[eachTile].eachsegment

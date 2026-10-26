@@ -69,7 +69,7 @@ public class LockManager {
     public boolean isLocked(int lockId) {
         int lockIndex = getPrivateLockIndex(lockId);
 
-        return (lockIndex > 0) ? true : false;
+        return lockIndex >= 0;
     }
 
     /**
@@ -81,7 +81,7 @@ public class LockManager {
     public boolean isLocked(int lockId, int excludingSemaphoreInc) {
         int lockIndex = getPrivateLockIndex(lockId);
 
-        if ((lockIndex > 0) && (locks[lockIndex][LOCK_SEMAPHORE] == excludingSemaphoreInc)) {
+        if ((lockIndex >= 0) && (locks[lockIndex][LOCK_SEMAPHORE] == excludingSemaphoreInc)) {
             return false;   // maybe locked but excluded
         }
         return isLocked(lockId);
@@ -120,7 +120,10 @@ public class LockManager {
      * @return real Id
      */
     public int getRandomLockId() {
-        int aLock = (int) Math.round((numberOfLocks) * Math.random());
+        if (numberOfLocks == 0) {
+            return -1;
+        }
+        int aLock = (int) (numberOfLocks * Math.random());
         //System.out.printf("LockManager()->getRandomLockId() - Random LockIndex %d\n", aLock);
         return locks[aLock][LOCK_ID];
     }

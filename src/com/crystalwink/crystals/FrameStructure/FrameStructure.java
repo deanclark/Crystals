@@ -4,35 +4,32 @@
  */
 package com.crystalwink.crystals.FrameStructure;
 
-import com.crystalwink.crystalscommon.CrystalGlobals;
-import com.crystalwink.crystalscommon.Trace;
-import com.crystalwink.crystalscommon.Tile.Tile;
-//import com.crystalwink.crystalscommon.Trace.*;
-import com.crystalwink.crystalscommon.TilePlacementInfo.TilePlacementInfo;
-import com.crystalwink.crystals.GraphPanel.GraphPanel;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-//import java.io.UnsupportedEncodingException;
-
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentType;
 import org.w3c.dom.Entity;
 import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.DocumentType;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+
+import com.crystalwink.crystals.GraphPanel.GraphPanel;
+import com.crystalwink.crystalscommon.CrystalGlobals;
+import com.crystalwink.crystalscommon.Tile.Tile;
+import com.crystalwink.crystalscommon.TilePlacementInfo.TilePlacementInfo;
+import com.crystalwink.crystalscommon.Trace;
 
 /**
  *
@@ -626,7 +623,7 @@ public class FrameStructure extends GridFrameStructure{
                 }
 
                 /**
-                 * If all compatible tiles reach the High Water Mark we apear to be stuck.
+                 * If all compatible tiles reach the High Water Mark we appear to be stuck.
                  * As the tile selection is random there is a likelyhood that not all compatible tiles will be tried
                  */
                 boolean belowHighWater = false;
@@ -653,9 +650,11 @@ public class FrameStructure extends GridFrameStructure{
                     // reset about 10%
                     resetTile(preferedRowI, preferedColI, CrystalGlobals.LOCKED, false);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
                     int lasttilesPlaced = gridCellFullyPlacedGet();
+                    int backtrackCount = Math.min(BACK_TRACK_HIGH,
+                            Math.max(BACK_TRACK_LOW, lasttilesPlaced - startHistoryIndex - 1));
                     for (int ii = lasttilesPlaced; ii > 0; ii--) {
 //                        if(ii > (lasttilesPlaced - (lasttilesPlaced/10)) )
-                        if (ii > (lasttilesPlaced - BACK_TRACK_LOW)) {
+                        if (ii > (lasttilesPlaced - backtrackCount) && ii > startHistoryIndex + 1) {
                             resetTile(tilePlacementOrder2[ii - 1].ROW_INDEX, tilePlacementOrder2[ii - 1].COL_INDEX, CrystalGlobals.LOCKED, false);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
                         }                            //resetTile(tilePlacementOrder[ii-1][ROW_INDEX], tilePlacementOrder[ii-1][COL_INDEX], CrystalGlobals.LOCKED);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
 
@@ -675,9 +674,15 @@ public class FrameStructure extends GridFrameStructure{
                                 System.out.println("belowHighWater - (NEW) row:" + preferedRowI + " col:" + preferedColI + " tileFound:" + tileIdFound + " Colours Avail:" + getAvailableGridColours() + " tiles placed " + gridCellFullyPlacedGet());
                             }
                         } else {
-                            tilePlacementOrder2[gridCellFullyPlacedGet()].ROW_INDEX = preferedRowI;
-                            tilePlacementOrder2[gridCellFullyPlacedGet()].COL_INDEX = preferedColI;
-                            tilePlacementOrder2[gridCellFullyPlacedGet()].TILEID_INDEX = tileIdFound;
+                                            TilePlacementInfo placement = tilePlacementOrder2[gridCellFullyPlacedGet()];
+                                            if (placement.ROW_INDEX != preferedRowI || placement.COL_INDEX != preferedColI) {
+                                                for (int historyIndex = 0; historyIndex < placement.tileHistory.length; historyIndex++) {
+                                                    placement.tileHistory[historyIndex] = 0;
+                                                }
+                                            }
+                                            placement.ROW_INDEX = preferedRowI;
+                                            placement.COL_INDEX = preferedColI;
+                                            placement.TILEID_INDEX = tileIdFound;
 
                             if (debug_tileHistory) {
                                 System.out.println("belowHighWater -  row:" + preferedRowI + " col:" + preferedColI + " tileFound:" + tileIdFound + " Colours Avail:" + getAvailableGridColours() + " tiles placed " + gridCellFullyPlacedGet());
@@ -1230,9 +1235,7 @@ public class FrameStructure extends GridFrameStructure{
 
                 // tile already in use or exceeded number of tries
                 if (tileIdFound != -1) {
-                    if (tileIdAlreadyFound[tileIdFound] == true ||
-                            //                            tileHistory[tileIdFound] > HIGH_WATER_TRIGGER ||
-                            tilePlacementOrder2[gridCellFullyPlacedGet() - 1].tileHistory[tileIdFound] > HIGH_WATER_TRIGGER) {
+                    if (tileIdAlreadyFound[tileIdFound]) {
                         tileIdFound = -1;
                     }
                 }

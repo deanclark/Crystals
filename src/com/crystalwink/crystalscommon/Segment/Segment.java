@@ -133,7 +133,7 @@ public class Segment {
 
     public Wire getRandomWire() {
         if (nConnectedWires > 0) {
-            int randomWire = (int) Math.round(nConnectedWires * Math.random());
+            int randomWire = (int) (nConnectedWires * Math.random());
 
             return connectedWires[randomWire];
         }

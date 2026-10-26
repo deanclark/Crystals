@@ -1,15 +1,5 @@
 package com.crystalwink.crystals.GraphPanel;
 
-import com.crystalwink.crystalscommon.Trace;
-import com.crystalwink.crystalscommon.CrystalGlobals;
-import com.crystalwink.crystalscommon.Tile.Tile;
-import com.crystalwink.crystalscommon.Wire.Wire;
-import com.crystalwink.crystalscommon.LockManager.LockManager;
-//import com.crystalwink.crystalscommon.Wire.Wire;
-import com.crystalwink.crystals.TilePrintableAwt.TilePrintableAwt;
-import com.crystalwink.crystals.FrameStructure.FrameStructure;
-import com.crystalwink.crystals.Crystal;
-
 import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,6 +13,15 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import com.crystalwink.crystals.Crystal;
+import com.crystalwink.crystals.FrameStructure.FrameStructure;
+import com.crystalwink.crystals.TilePrintableAwt.TilePrintableAwt;
+import com.crystalwink.crystalscommon.CrystalGlobals;
+import com.crystalwink.crystalscommon.LockManager.LockManager;
+import com.crystalwink.crystalscommon.Tile.Tile;
+import com.crystalwink.crystalscommon.Trace;
+import com.crystalwink.crystalscommon.Wire.Wire;
 
 /**
  *
@@ -507,7 +506,14 @@ public class GraphPanel extends Panel
                  */
 
                 // pick a tile that is locked
+                if (tileLockManager.getLocksInUse() == 0) {
+                    tileLockManager.updateLock(tiles[0].getId(), Tile.LOCKED);
+                }
                 aTileIndexNotId = getTileIndexFromId(tileLockManager.getRandomLockId());        // gets the tileIndex to be used in tiles[]
+                if (aTileIndexNotId < 0) {
+                    repaint();
+                    return;
+                }
 
                 // the random locked tile selection is very slow when many tiles.  A short list/lookup of locked tiles has been implemented in the form of LockManager.
                 double dx = 0;
@@ -525,7 +531,7 @@ public class GraphPanel extends Panel
                     if (primaryTile.tileSegment[randomSegment].colour != 0) {
                         // TODO check if an active wire already exists and if so check if locked and valid.
 
-                        // if not clear active wire (if one exists) and select a random wi
+                        // if not clear active wire (if one exists) and select a random wire from the segment and move the other tile in the direction of the wire
                         Wire selectedWire = primaryTile.tileSegment[randomSegment].getRandomWire();
                         //Wire selectedWire = primaryTile.tileSegment[randomSegment].getActiveWire();   // dc-debug may want to select any old wire
                         if (selectedWire != null) {
@@ -936,6 +942,8 @@ public class GraphPanel extends Panel
                     }
                 }
 
+                resolveTileOverlaps(tiles, numberOfTiles, tileLockManager, dimension);
+
                 for (aTileIndexNotId = 0; aTileIndexNotId < getNumberOfTiles(); aTileIndexNotId++) {
                     tiles[aTileIndexNotId].moveTile((int) tiles[aTileIndexNotId].xWorldSpace, (int) tiles[aTileIndexNotId].yWorldSpace);
                 }
@@ -952,6 +960,75 @@ public class GraphPanel extends Panel
 
         }
     }  // relax
+
+    static void resolveTileOverlaps(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension) {
+        double minimumSeparation = Tile.getSegmentScale();
+        if (minimumSeparation <= 0) {
+            return;
+        }
+
+        for (int pass = 0; pass < 4; pass++) {
+            for (int firstIndex = 0; firstIndex < numberOfTiles; firstIndex++) {
+                Tile firstTile = tiles[firstIndex];
+                boolean firstCanMove = !tileLockManager.isLocked(firstTile.getId(), Tile.TEMPORARY_LOCKED);
+
+                for (int secondIndex = firstIndex + 1; secondIndex < numberOfTiles; secondIndex++) {
+                    Tile secondTile = tiles[secondIndex];
+                    boolean secondCanMove = !tileLockManager.isLocked(secondTile.getId(), Tile.TEMPORARY_LOCKED);
+                    if (!firstCanMove && !secondCanMove) {
+                        continue;
+                    }
+
+                    double deltaX = secondTile.xWorldSpace - firstTile.xWorldSpace;
+                    double deltaY = secondTile.yWorldSpace - firstTile.yWorldSpace;
+                    double overlapX = minimumSeparation - Math.abs(deltaX);
+                    double overlapY = minimumSeparation - Math.abs(deltaY);
+                    if (overlapX <= 0 || overlapY <= 0) {
+                        continue;
+                    }
+
+                    double direction = deltaX == 0 && deltaY == 0
+                            ? (((firstIndex + secondIndex) & 1) == 0 ? 1 : -1)
+                            : 0;
+                    if (overlapX <= overlapY) {
+                        if (direction == 0) {
+                            direction = deltaX == 0 ? (deltaY > 0 ? 1 : -1) : Math.signum(deltaX);
+                        }
+                        if (firstCanMove && secondCanMove) {
+                            firstTile.xWorldSpace -= direction * overlapX / 2;
+                            secondTile.xWorldSpace += direction * overlapX / 2;
+                        } else if (firstCanMove) {
+                            firstTile.xWorldSpace -= direction * overlapX;
+                        } else {
+                            secondTile.xWorldSpace += direction * overlapX;
+                        }
+                    } else {
+                        if (direction == 0) {
+                            direction = deltaY == 0 ? (deltaX > 0 ? 1 : -1) : Math.signum(deltaY);
+                        }
+                        if (firstCanMove && secondCanMove) {
+                            firstTile.yWorldSpace -= direction * overlapY / 2;
+                            secondTile.yWorldSpace += direction * overlapY / 2;
+                        } else if (firstCanMove) {
+                            firstTile.yWorldSpace -= direction * overlapY;
+                        } else {
+                            secondTile.yWorldSpace += direction * overlapY;
+                        }
+                    }
+                }
+            }
+
+            double minimumCenter = minimumSeparation / 2;
+            double maximumX = Math.max(minimumCenter, dimension.width - minimumCenter);
+            double maximumY = Math.max(minimumCenter, dimension.height - minimumCenter);
+            for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+                if (!tileLockManager.isLocked(tiles[tileIndex].getId(), Tile.TEMPORARY_LOCKED)) {
+                    tiles[tileIndex].xWorldSpace = Math.max(minimumCenter, Math.min(maximumX, tiles[tileIndex].xWorldSpace));
+                    tiles[tileIndex].yWorldSpace = Math.max(minimumCenter, Math.min(maximumY, tiles[tileIndex].yWorldSpace));
+                }
+            }
+        }
+    }
 
 
     @Override
