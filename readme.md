@@ -30,6 +30,15 @@ Controls
 * Q	Quit (Second Q will exit the application)
 * C	Continue following a quit
 
+Options
+-----------
+
+* **Floating** - on: tiles float and are pulled together by wires; off: the frame based search (Show / Infill) places tiles on the grid.
+* **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
+* **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size.
+* **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.
+* **Random**, **Id's**, **Rotate**, **Wires** - random fill, show tile ids, animate rotation, show wires.
+
 Issues
 -----------
 
@@ -53,6 +62,6 @@ Use the Gradle wrapper from the repository root:
 * Run the desktop application: `gradlew.bat run` (Windows) or `./gradlew run`
 * Build the Android-consumable shared library: `gradlew.bat crystalsCommonJar` (Windows) or `./gradlew crystalsCommonJar`
 
-The desktop application jar is written to `build/libs/`. `CrystalsCommon.jar`, containing only the `crystalscommon` package, is written to `build/android-libs/` and compiled for Java 8 compatibility. Gradle itself runs on JDK 17 or newer; this project was verified with JDK 25.
+The desktop application jar is written to `build/libs/`. `CrystalsCommon.jar`, containing only the `crystalscommon` package, is written to `build/android-libs/` and compiled for Java 11 bytecode (`options.release = 11`). `uTurnAnd/libs/CrystalsCommon.jar` must be rebuilt from here and copied across whenever the `crystalscommon` package changes. Gradle itself runs on JDK 17 or newer; this project was verified with JDK 25.
 
-The existing JUnit tests include unfinished test cases that deliberately fail, so `test` and `build` may report failures until those tests are completed.
+The existing JUnit tests include unfinished Eclipse stubs (`fail("Not yet implemented")`) that fail by design, so `test` and `build` report failures until those tests are completed (45 of 82 at the time of writing; the rest pass, including the tile drawing, collision and backtracking tests).
