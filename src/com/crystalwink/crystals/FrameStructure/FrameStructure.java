@@ -63,6 +63,35 @@ public class FrameStructure extends GridFrameStructure{
     static int HIGH_WATER_TRIGGER = 20;
     static int BACK_TRACK_LOW = 1;
     static int BACK_TRACK_HIGH = 3;
+    static int BACK_TRACK_GROWTH = 1;   // extra placements undone per repeated dead end at the same depth
+
+    // Backtracking state: the placed-tile count at the previous dead end and how many dead ends in a row
+    // have been hit without getting deeper than that.
+    private int lastDeadEndPlaced = -1;
+    private int consecutiveDeadEnds = 0;
+
+    /**
+     * Number of placements to undo when the search is stuck (dead end or HighWater reached).
+     * A fixed depth makes the search bounce between the same few placements forever (placed count saw-tooths
+     * N, N-3, N, N-3 ...). Every time the search gets stuck again at no greater depth than the last dead end
+     * the depth is increased so that the cause of the conflict is eventually backtracked past. Any progress
+     * beyond the previous dead end resets the depth.
+     *
+     * @param tilesPlaced number of tiles placed when the dead end was detected
+     * @return number of placements to undo, never reaching the hint tile(s)
+     */
+    public int nextBacktrackDepth(int tilesPlaced) {
+        if (tilesPlaced > lastDeadEndPlaced) {
+            consecutiveDeadEnds = 0;
+        } else {
+            consecutiveDeadEnds++;
+        }
+        lastDeadEndPlaced = tilesPlaced;
+
+        int depth = BACK_TRACK_HIGH + BACK_TRACK_GROWTH * consecutiveDeadEnds;
+        int deepestAllowed = Math.max(BACK_TRACK_LOW, tilesPlaced - startHistoryIndex - 1);
+        return Math.max(BACK_TRACK_LOW, Math.min(depth, deepestAllowed));
+    }
 
     public FrameStructure(int verticalTiles, int horizontalTiles, Tile tiles[], int ntiles) {
         
@@ -650,8 +679,7 @@ public class FrameStructure extends GridFrameStructure{
                     // reset about 10%
                     resetTile(preferedRowI, preferedColI, CrystalGlobals.LOCKED, false);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
                     int lasttilesPlaced = gridCellFullyPlacedGet();
-                    int backtrackCount = Math.min(BACK_TRACK_HIGH,
-                            Math.max(BACK_TRACK_LOW, lasttilesPlaced - startHistoryIndex - 1));
+                    int backtrackCount = nextBacktrackDepth(lasttilesPlaced);
                     for (int ii = lasttilesPlaced; ii > 0; ii--) {
 //                        if(ii > (lasttilesPlaced - (lasttilesPlaced/10)) )
                         if (ii > (lasttilesPlaced - backtrackCount) && ii > startHistoryIndex + 1) {
@@ -745,8 +773,10 @@ public class FrameStructure extends GridFrameStructure{
                 // reset 50% or a few tiles
                 resetTile(preferedRowI, preferedColI, CrystalGlobals.LOCKED, false);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
                 int lasttilesPlaced = gridCellFullyPlacedGet();
+                int backtrackCount = nextBacktrackDepth(lasttilesPlaced);
                 for (int ii = lasttilesPlaced; ii > 0; ii--) {
-                    if (ii > (lasttilesPlaced - BACK_TRACK_HIGH)) {
+                    // never undo the hint tile(s) and never reach below the start of the placement history
+                    if (ii > (lasttilesPlaced - backtrackCount) && ii > startHistoryIndex + 1) {
                         // reset history
                         // @todo - only if the newly selected tile is not the same as the previously rejected tile
                         for (int tileIdTemp = 0; tileIdTemp < CrystalGlobals.MAX_TILES; tileIdTemp++) {
