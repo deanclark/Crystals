@@ -83,11 +83,44 @@ public class FloatingLayoutDiagnosticsTest {
             panel.relax();
         }
         assertTrue("some swaps that lose tiles should have been accepted", panel.swapsWorsening > 0);
-        assertTrue("the best board should beat plain repair: " + panel.bestPlaced, panel.bestPlaced >= 226);
+        assertTrue("the best board should beat plain repair: " + panel.bestPlaced(), panel.bestPlaced() >= 226);
 
         panel.restoreBest();
-        assertEquals("the best board is back", panel.bestPlaced, panel.placedCount());
-        checkCrystal(panel, panel.bestPlaced);
+        assertEquals("the best board is back", panel.bestPlaced(), panel.placedCount());
+        checkCrystal(panel, panel.bestPlaced());
+    }
+
+    /**
+     * A run is a greedy phase plus cooling cycles; when it is over the crystal is cleared and a fresh run starts, keeping
+     * the best board of all runs. When the last run ends the best board of all runs must be back on the table.
+     */
+    @Test
+    public void freshRunsKeepTheBestBoardAndTheLastRunEndsOnIt() throws Exception {
+        int savedRuns = GraphPanel.freshRuns;
+        int savedCycles = GraphPanel.cyclesPerRun;
+        try {
+            GraphPanel.freshRuns = 1;
+            GraphPanel.cyclesPerRun = 1;   // runs of 300 + 1500 iterations
+            GraphPanel panel = createPanel();
+            int placedAtEndOfFirstRun = 0;
+            for (int iteration = 1; iteration <= 3600; iteration++) {
+                panel.relax();
+                if (iteration == 1799) {
+                    placedAtEndOfFirstRun = panel.bestPlaced();
+                }
+                if (iteration == 1801) {
+                    assertEquals("the crystal is cleared for the second run", 2, panel.runsStarted());
+                    assertTrue("a fresh run starts from few tiles, not the old board: " + panel.placedCount(), panel.placedCount() < 100);
+                    assertTrue("the first run's best is kept", panel.bestPlaced() >= placedAtEndOfFirstRun);
+                }
+            }
+            assertEquals("the last run ends on the best board of all runs", panel.bestPlaced(), panel.placedCount());
+            assertTrue("and it is a good one: " + panel.placedCount(), panel.placedCount() >= 222);
+            checkCrystal(panel, panel.bestPlaced());
+        } finally {
+            GraphPanel.freshRuns = savedRuns;
+            GraphPanel.cyclesPerRun = savedCycles;
+        }
     }
 
     /** The applet's panel has no size until its window is laid out: the grid must not be anchored to that. */

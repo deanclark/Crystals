@@ -52,6 +52,11 @@ Options
   accepted with a probability that falls as the temperature cools, the cycle restarts every 1500 iterations, the best board seen is remembered and
   put back at the end of each cycle if the current one is worse. So the number of tiles placed can dip while it is exploring; the status text
   shows "Placed: n (best b)". This lifts the board from about 222-225 placed to about 228-233.
+  A run is 300 greedy iterations plus 4 cooling cycles (6300 iterations). When a run is over the crystal is cleared and a fresh run starts
+  (different random choices find different boards), twice; the best board of all runs is kept, and when the last run ends it is put back and the
+  annealing carries on from it. Measured: 3 runs of this kind reach 232-233 placed, against 231-232 for annealing continuously for the same
+  number of iterations, a small gain that is within the noise; the board is wiped at the end of each of the first two runs and regrows within
+  a few hundred iterations while "(best b)" keeps the best so far.
 * **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
 * **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size. In a dense clump the overlap resolver keeps pushing for up to 60 passes and then moves any tile it could not separate to the nearest free spot.
 * **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.
@@ -83,3 +88,12 @@ Use the Gradle wrapper from the repository root:
 The desktop application jar is written to `build/libs/`. `CrystalsCommon.jar`, containing only the `crystalscommon` package, is written to `build/android-libs/` and compiled for Java 11 bytecode (`options.release = 11`). `uTurnAnd/libs/CrystalsCommon.jar` must be rebuilt from here and copied across whenever the `crystalscommon` package changes. Gradle itself runs on JDK 17 or newer; this project was verified with JDK 25.
 
 All 23 JUnit tests pass (`./gradlew test`). The old empty Eclipse stubs (`fail("Not yet implemented")` and tests with no assertions) were removed; the remaining tests cover tile drawing, collision, backtracking and the floating-mode crystal (`FloatingLayoutDiagnosticsTest`, which runs the real 256 tiles headless).
+
+## Future work
+
+* **Save the best results to a file.** Capture the best-fitting boards found (tile id, cell, orientation, and the score) in a file that can be
+  re-imported later, to seed a run with a known good board or just to view it again (for example `best-<placed>-<date>.txt` written whenever a
+  run beats the best so far, plus an Import action that loads one as the starting crystal or displays it read-only).
+* A deeper search to place more than about 233 of the 256 tiles (more repair attempts per iteration, unlocking three neighbours only when hot,
+  restarts that perturb the best board instead of clearing it).
+* Keep free tiles out of the status text at the bottom right of the panel.
