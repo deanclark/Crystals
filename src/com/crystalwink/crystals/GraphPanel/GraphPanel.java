@@ -568,7 +568,7 @@ public class GraphPanel extends Panel
                     }
                 }
                 // TODO decrease lock relative to number of locked neighbours if less than 2 locked neighbours
-                if (tileLockManager.isLocked(tiles[aTileIndexNotId].getId())) {
+                if (tileLockManager.isLocked(tiles[aTileIndexNotId].getId()) && !crystalMember[aTileIndexNotId]) {
                     if (lockedNeighbours == 3) {
                         tileLockManager.decreaseLock(tiles[aTileIndexNotId].getId(), 1);
                     } else if (lockedNeighbours < 3) {
@@ -778,7 +778,8 @@ public class GraphPanel extends Panel
                         eachTile.rotationVector = 0;
                     }
 
-                    if (tileLockManager.isLocked(eachTile.getId())) {
+                    // crystal tiles keep their lock until repairHole unlocks them to make room
+                    if (tileLockManager.isLocked(eachTile.getId()) && !crystalMember[tileIndexNotId]) {
                         tileLockManager.decreaseLock(eachTile.getId(), 1);
                     }
                 }
@@ -1056,7 +1057,7 @@ public class GraphPanel extends Panel
     // crystal and set free) so that a tile can go in, and the vacated cells are refilled if possible. The swap is
     // kept only when the number of placed tiles does not go down; otherwise everything is put back.
 
-    private static final int HOLE_ATTEMPTS = 6;            // per relax() iteration
+    private static final int HOLE_ATTEMPTS = 30;           // per relax() iteration
     private static final int MAX_EVICTED_NEIGHBOURS = 2;   // neighbours that may be unlocked to let one tile in
     private static final int SWAPS_TRIED = 6;              // candidate tiles tried per hole
     private static final double CORNER_FOCUS = 0.15;      // share of hole searches that look at a corner cell
@@ -1242,24 +1243,82 @@ public class GraphPanel extends Panel
         return found;
     }
 
-    /** A random empty cell of the playing area with at least one tile beside it, or null. */
+    /** Chance that a hole search follows the fill order (border ring, then rows) rather than picking a cell at random. */
+    private static final double ORDERED_PICK = 0.75;
+
+    private boolean isHole(boolean[] occupied, int column, int row) {
+        if (!isCellInBoard(column, row) || occupied[row * boardColumns() + column]) {
+            return false;
+        }
+        for (int side = 0; side < 4; side++) {
+            int neighbourColumn = column + SIDE_DC[side];
+            int neighbourRow = row + SIDE_DR[side];
+            if (isCellInBoard(neighbourColumn, neighbourRow) && occupied[neighbourRow * boardColumns() + neighbourColumn]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * An empty cell of the playing area with at least one crystal tile beside it, or null. Mostly the first one in fill
+     * order (border ring clockwise from the top-left corner, then the interior row by row) so holes are dealt with from the
+     * corner outwards and early ones are repaired before more tiles pile up around them; sometimes a corner or a random
+     * cell so that one hard hole cannot take every attempt.
+     */
     private int[] pickHole() {
-        for (int attempt = 0; attempt < 40; attempt++) {
-            int column = (int) (Math.random() * boardColumns());
-            int row = (int) (Math.random() * boardRows());
-            if (Math.random() < CORNER_FOCUS) {
-                // the four corner cells are the hardest to get right, so look at them more often
-                column = Math.random() < 0.5 ? 0 : boardColumns() - 1;
-                row = Math.random() < 0.5 ? 0 : boardRows() - 1;
+        int columns = boardColumns();
+        int rows = boardRows();
+        boolean[] occupied = new boolean[columns * rows];
+        for (int index = 0; index < numberOfTiles; index++) {
+            if (isSettled(index)) {
+                occupied[cellRow(tiles[index]) * columns + cellColumn(tiles[index])] = true;
             }
-            if (tileOnCell(column, row, -1) >= 0) {
-                continue;
+        }
+
+        double choice = Math.random();
+        if (choice < CORNER_FOCUS) {
+            // the four corner cells are the hardest to get right, so look at them more often
+            int column = Math.random() < 0.5 ? 0 : columns - 1;
+            int row = Math.random() < 0.5 ? 0 : rows - 1;
+            if (isHole(occupied, column, row)) {
+                return new int[] {column, row};
             }
-            for (int side = 0; side < 4; side++) {
-                if (isCellInBoard(column + SIDE_DC[side], row + SIDE_DR[side])
-                        && tileOnCell(column + SIDE_DC[side], row + SIDE_DR[side], -1) >= 0) {
-                    return new int[] {column, row};
+        }
+        if (choice < CORNER_FOCUS + ORDERED_PICK) {
+            for (int column = 0; column < columns; column++) {
+                if (isHole(occupied, column, 0)) {
+                    return new int[] {column, 0};
                 }
+            }
+            for (int row = 1; row < rows; row++) {
+                if (isHole(occupied, columns - 1, row)) {
+                    return new int[] {columns - 1, row};
+                }
+            }
+            for (int column = columns - 2; column >= 0; column--) {
+                if (isHole(occupied, column, rows - 1)) {
+                    return new int[] {column, rows - 1};
+                }
+            }
+            for (int row = rows - 2; row >= 1; row--) {
+                if (isHole(occupied, 0, row)) {
+                    return new int[] {0, row};
+                }
+            }
+            for (int row = 1; row < rows - 1; row++) {
+                for (int column = 1; column < columns - 1; column++) {
+                    if (isHole(occupied, column, row)) {
+                        return new int[] {column, row};
+                    }
+                }
+            }
+        }
+        for (int attempt = 0; attempt < 40; attempt++) {
+            int column = (int) (Math.random() * columns);
+            int row = (int) (Math.random() * rows);
+            if (isHole(occupied, column, row)) {
+                return new int[] {column, row};
             }
         }
         return null;
@@ -1703,6 +1762,14 @@ public class GraphPanel extends Panel
         stStats = String.valueOf(iterations);
         offScreenGraphics.drawString("Iterations: ", dimension.width - 140, dimension.height - 20);
         offScreenGraphics.drawString(stStats, dimension.width - 50, dimension.height - 20);
+        if (showFloatingTiles && numberOfTiles > 0) {
+            int placedTiles = 0;
+            for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+                placedTiles += crystalMember[tileIndex] ? 1 : 0;
+            }
+            offScreenGraphics.drawString("Placed: ", dimension.width - 140, dimension.height - 40);
+            offScreenGraphics.drawString(placedTiles + " of " + numberOfTiles, dimension.width - 85, dimension.height - 40);
+        }
 
         // display frame
 //        aFrame.drawFrame(offScreenGraphics, palate);

@@ -44,7 +44,10 @@ Options
   Holes are repaired every iteration: a free tile that matches every neighbour is placed; otherwise the tiles that stand in the way (up to two
   neighbours, or a tile sitting in another cell that would fit) are unlocked and set free so a tile can go in, and the cells they vacated are
   refilled. The swap is kept only if the number of placed tiles does not go down, otherwise it is put back, so the count never falls.
-  After a few thousand iterations about 220 of the 256 tiles are placed with every neighbouring pair matching.
+  Holes are looked at from the corner outwards (border ring first, then the interior row by row), 30 attempts per iteration, so early holes
+  are dealt with early. Crystal tiles keep their lock until a repair unlocks them, so "Locks in Use" equals the tiles placed (also shown as
+  "Placed: n of 256"). About 215 of the 256 tiles are placed within 100 iterations and 220-230 after a few hundred, with every neighbouring
+  pair matching; the rest are left waiting around the board.
 * **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
 * **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size. In a dense clump the overlap resolver keeps pushing for up to 60 passes and then moves any tile it could not separate to the nearest free spot.
 * **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.

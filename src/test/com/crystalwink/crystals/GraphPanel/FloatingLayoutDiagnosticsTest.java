@@ -65,7 +65,7 @@ public class FloatingLayoutDiagnosticsTest {
     @Test
     public void crystalFillsMostOfTheBoardWithEveryNeighbourMatching() throws Exception {
         GraphPanel panel = createPanel();
-        for (int iteration = 0; iteration < 6000; iteration++) {
+        for (int iteration = 0; iteration < 1500; iteration++) {
             panel.relax();
         }
         checkCrystal(panel);
@@ -81,7 +81,7 @@ public class FloatingLayoutDiagnosticsTest {
         assertEquals("nothing grows before the panel has a size", 0, panel.tileLockManager.getLocksInUse());
 
         panel.setSize(WIDTH, HEIGHT);
-        for (int iteration = 0; iteration < 6000; iteration++) {
+        for (int iteration = 0; iteration < 1500; iteration++) {
             panel.relax();
         }
         checkCrystal(panel);
@@ -164,14 +164,15 @@ public class FloatingLayoutDiagnosticsTest {
                 largest = Math.max(largest, ++size[find(group, i)]);
             }
         }
-        System.out.printf("after 6000 iterations: %d of %d tiles placed (%d connected), %d touching pairs, %d mismatched, overlaps %d, "
+        System.out.printf("after 1500 iterations: %d of %d tiles placed (%d connected), %d touching pairs, %d mismatched, overlaps %d, "
                 + "corners placed %d, edge tiles placed %d, tiles unlocked to fill holes: %d swaps, %d plain fills%n",
                 placed, n, largest, touching, mismatches, overlaps, cornersPlaced, edgesPlaced, panel.holesSwapped, panel.holesFilled);
 
+        assertEquals("every placed tile keeps its lock, so locks in use equal placed tiles", placed, panel.tileLockManager.getLocksInUse());
         assertEquals("tiles must not overlap", 0, overlaps);
         assertEquals("neighbouring crystal tiles must match edge to edge (" + touching + " pairs)", 0, mismatches);
         assertEquals("every crystal tile suits its cell (grey edges outside only)", 0, misfits);
-        assertTrue("most of the board should be placed: " + placed, placed >= 190);
+        assertTrue("most of the board should be placed: " + placed, placed >= 200);
         assertTrue("the crystal should be one connected piece: " + largest + " of " + placed, largest >= placed * 0.9);
         assertEquals("all four corner tiles should be in the corners", 4, cornersPlaced);
         assertTrue("edge tiles should be on the border: " + edgesPlaced, edgesPlaced >= 40);
