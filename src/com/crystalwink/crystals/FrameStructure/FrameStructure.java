@@ -902,12 +902,12 @@ public class FrameStructure extends GridFrameStructure{
 //            offScreenGraphics.drawLine(58, 110, 98, 120);   // @todo REMOVE hor
 
             // wide carrier
-            offScreenGraphics.drawLine(CELL_SCALE, (VerticalRowCells - 1) * CELL_SCALE, ((HorizontalColumnCells / 2) - 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE);
-            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) - 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE, ((HorizontalColumnCells / 2) - 2) * CELL_SCALE, (2) * CELL_SCALE);
-            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) - 2) * CELL_SCALE, (2) * CELL_SCALE, ((HorizontalColumnCells / 2) + 2) * CELL_SCALE, (2) * CELL_SCALE);
-            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) + 2) * CELL_SCALE, (2) * CELL_SCALE, ((HorizontalColumnCells / 2) + 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE);
-            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) + 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE, (HorizontalColumnCells - 1) * CELL_SCALE, (VerticalRowCells - 1) * CELL_SCALE);
-            offScreenGraphics.setColor(palate[2]);
+//            offScreenGraphics.drawLine(CELL_SCALE, (VerticalRowCells - 1) * CELL_SCALE, ((HorizontalColumnCells / 2) - 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE);
+//            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) - 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE, ((HorizontalColumnCells / 2) - 2) * CELL_SCALE, (2) * CELL_SCALE);
+//            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) - 2) * CELL_SCALE, (2) * CELL_SCALE, ((HorizontalColumnCells / 2) + 2) * CELL_SCALE, (2) * CELL_SCALE);
+//            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) + 2) * CELL_SCALE, (2) * CELL_SCALE, ((HorizontalColumnCells / 2) + 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE);
+//            offScreenGraphics.drawLine(((HorizontalColumnCells / 2) + 3) * CELL_SCALE, (VerticalRowCells - 2) * CELL_SCALE, (HorizontalColumnCells - 1) * CELL_SCALE, (VerticalRowCells - 1) * CELL_SCALE);
+//            offScreenGraphics.setColor(palate[2]);
         }
         //System.out.println("End drawFrame()");
         // Display stats
