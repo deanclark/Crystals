@@ -20,6 +20,7 @@ import com.crystalwink.crystals.TilePrintableAwt.TilePrintableAwt;
 import com.crystalwink.crystalscommon.CrystalGlobals;
 import com.crystalwink.crystalscommon.LockManager.LockManager;
 import com.crystalwink.crystalscommon.Tile.Tile;
+import com.crystalwink.crystalscommon.Segment.Segment;
 import com.crystalwink.crystalscommon.Trace;
 import com.crystalwink.crystalscommon.Wire.Wire;
 
@@ -92,7 +93,10 @@ public class GraphPanel extends Panel
         Tile.setSegmentScale(scale);
         for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
             tiles[tileIndex].rescale(scale);
+            tileLockManager.removeLock(tiles[tileIndex].getId());   // the grid cell size changed: grow a new crystal
         }
+        anchoredLeft = Double.NaN;
+        anchoredTop = Double.NaN;
         if (aFrame != null) {
             boolean large = scale >= TILE_SCALE_LARGE;
             FrameStructure.LINE_LENGTH = large ? 40 : 6;
@@ -464,7 +468,7 @@ public class GraphPanel extends Panel
         if (showFloatingTiles)
         {
 
-            if (!pauseGame && numberOfTiles > 0) {
+            if (!pauseGame && numberOfTiles > 0 && hasUsableSize()) {
                 iterations++;
 
                 // each wire
@@ -799,12 +803,29 @@ public class GraphPanel extends Panel
         return Math.max(1, (numberOfTiles + boardColumns() - 1) / boardColumns());
     }
 
+    // The grid's origin is fixed when the crystal is seeded, so tiles already on it stay on it if the panel is
+    // resized afterwards (NaN until then, when it follows the centre of the panel).
+    private double anchoredLeft = Double.NaN;
+    private double anchoredTop = Double.NaN;
+
     double boardLeft() {
+        if (!Double.isNaN(anchoredLeft)) {
+            return anchoredLeft;
+        }
         return Math.max(0, (getSize().width - boardColumns() * Tile.getSegmentScale()) / 2.0);
     }
 
     double boardTop() {
+        if (!Double.isNaN(anchoredTop)) {
+            return anchoredTop;
+        }
         return Math.max(0, (getSize().height - boardRows() * Tile.getSegmentScale()) / 2.0);
+    }
+
+    /** False until the panel has been laid out; growing a crystal before then would anchor the grid to a wrong size. */
+    private boolean hasUsableSize() {
+        Dimension size = getSize();
+        return size.width >= 3 * Tile.getSegmentScale() && size.height >= 3 * Tile.getSegmentScale();
     }
 
     double cellCentreX(int column) {
@@ -832,6 +853,18 @@ public class GraphPanel extends Panel
         double limit = Tile.getSegmentScale() * 0.75;
         for (int index = 0; index < numberOfTiles; index++) {
             if (index != ignoreIndex && Math.abs(tiles[index].xWorldSpace - x) < limit && Math.abs(tiles[index].yWorldSpace - y) < limit) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    /** Index of a tile sitting exactly in a cell of the grid (locked or not), ignoring one tile, or -1. */
+    private int tileOnCell(int column, int row, int ignoreIndex) {
+        double x = cellCentreX(column);
+        double y = cellCentreY(row);
+        for (int index = 0; index < numberOfTiles; index++) {
+            if (index != ignoreIndex && Math.abs(tiles[index].xWorldSpace - x) <= 2 && Math.abs(tiles[index].yWorldSpace - y) <= 2) {
                 return index;
             }
         }
@@ -896,6 +929,10 @@ public class GraphPanel extends Panel
         if (tileLockManager.isLocked(seedTile.getId())) {
             return;
         }
+        anchoredLeft = Double.NaN;
+        anchoredTop = Double.NaN;
+        anchoredLeft = boardLeft();
+        anchoredTop = boardTop();
         seedTile.setOrientation(orientation);
         seedTile.xWorldSpace = cellCentreX(0);
         seedTile.yWorldSpace = cellCentreY(0);
@@ -907,9 +944,8 @@ public class GraphPanel extends Panel
     }
 
     /**
-     * One growth step: take a random matching wire from a locked tile and put the tile at its other end into the cell
-     * beside it, turned so the two matching segments touch. Nothing happens when that cell is outside the playing area,
-     * already holds a locked tile, or the tile does not suit the cell (e.g. a grey edge that would face a neighbour).
+     * One growth step: from a random segment of a locked tile, try its matching wires (starting at a random one) until
+     * one lets the tile at the wire's other end into the cell beside it. See {@link #placeAcrossWire}.
      */
     private void growCrystal(int primaryIndex) {
         Tile primary = tiles[primaryIndex];
@@ -917,10 +953,25 @@ public class GraphPanel extends Panel
         if (primary.tileSegment[primarySegment].colour == 0) {
             return;
         }
-        Wire wire = primary.tileSegment[primarySegment].getRandomWire();
-        if (wire == null) {
-            return;
+        Segment segment = primary.tileSegment[primarySegment];
+        int wireCount = segment.nConnectedWires;
+        int start = wireCount > 0 ? (int) (Math.random() * wireCount) : 0;
+        for (int attempt = 0; attempt < wireCount; attempt++) {
+            if (placeAcrossWire(primaryIndex, primarySegment, segment.connectedWires[(start + attempt) % wireCount])) {
+                return;
+            }
         }
+    }
+
+    /**
+     * Put the tile at the far end of the wire into the cell beside the primary tile, turned so the two matching
+     * segments touch. It is only placed when the cell is inside the playing area, holds no locked tile, the tile
+     * suits the cell (grey edges face outside only) and every tile already beside the cell matches it edge to edge.
+     *
+     * @return true when the tile was placed and locked
+     */
+    private boolean placeAcrossWire(int primaryIndex, int primarySegment, Wire wire) {
+        Tile primary = tiles[primaryIndex];
         int secondaryIndex;
         int secondarySegment;
         if (wire.fromTile == primaryIndex) {
@@ -930,11 +981,11 @@ public class GraphPanel extends Panel
             secondaryIndex = wire.fromTile;
             secondarySegment = wire.fromSegment;
         } else {
-            return;
+            return false;
         }
         Tile secondary = tiles[secondaryIndex];
         if (secondaryIndex == primaryIndex || tileLockManager.isLocked(secondary.getId())) {
-            return;
+            return false;
         }
 
         int side = (primarySegment + primary.getOrientation()) % 4;                   // side of the primary that is touched
@@ -942,13 +993,21 @@ public class GraphPanel extends Panel
         int column = cellColumn(primary) + SIDE_DC[side];
         int row = cellRow(primary) + SIDE_DR[side];
         if (!isCellInBoard(column, row) || !tileFitsCell(secondary, secondaryOrientation, column, row)) {
-            return;
+            return false;
+        }
+        // every tile already sitting beside the cell must match on the touching side, not just the one it grew from
+        for (int neighbourSide = 0; neighbourSide < 4; neighbourSide++) {
+            int neighbour = tileOnCell(column + SIDE_DC[neighbourSide], row + SIDE_DR[neighbourSide], secondaryIndex);
+            if (neighbour >= 0 && colourOnSide(secondary, secondaryOrientation, neighbourSide)
+                    != colourOnSide(tiles[neighbour], tiles[neighbour].getOrientation(), (neighbourSide + 2) % 4)) {
+                return false;
+            }
         }
         double x = cellCentreX(column);
         double y = cellCentreY(row);
         int occupant = tileNear(x, y, secondaryIndex);
         if (occupant >= 0 && tileLockManager.isLocked(tiles[occupant].getId())) {
-            return;
+            return false;
         }
 
         secondary.setOrientation(secondaryOrientation);
@@ -962,16 +1021,15 @@ public class GraphPanel extends Panel
         // lock init to a value relative to the number of tiles already locked
         int remaining = getNumberOfTiles() - tileLockManager.getLocksInUse();
         tileLockManager.updateLock(secondary.getId(), remaining * remaining);
-        // a neighbour that already matches on another side makes the tile stay fixed for longer
+        // each locked neighbour makes the tile stay fixed for longer
         for (int neighbourSide = 0; neighbourSide < 4; neighbourSide++) {
-            int neighbour = tileNear(x + SIDE_DC[neighbourSide] * Tile.getSegmentScale(), y + SIDE_DR[neighbourSide] * Tile.getSegmentScale(), secondaryIndex);
-            if (neighbour >= 0 && neighbour != primaryIndex && tileLockManager.isLocked(tiles[neighbour].getId())
-                    && colourOnSide(secondary, secondaryOrientation, neighbourSide)
-                    == colourOnSide(tiles[neighbour], tiles[neighbour].getOrientation(), (neighbourSide + 2) % 4)) {
+            int neighbour = tileOnCell(column + SIDE_DC[neighbourSide], row + SIDE_DR[neighbourSide], secondaryIndex);
+            if (neighbour >= 0 && neighbour != primaryIndex && tileLockManager.isLocked(tiles[neighbour].getId())) {
                 tileLockManager.increaseLock(secondary.getId(), Tile.TEMPORARY_LOCKED);
             }
         }
         secondary.lock = tileLockManager.getLockLevel(secondary.getId());
+        return true;
     }
 
     private static final double BORDER_PULL = 3;        // pixels per iteration

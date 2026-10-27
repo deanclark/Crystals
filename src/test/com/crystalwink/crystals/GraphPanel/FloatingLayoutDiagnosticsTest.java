@@ -21,6 +21,11 @@ public class FloatingLayoutDiagnosticsTest {
 
     /** A panel loaded and wired exactly as Crystal.mainInit does, at the Large tile size. */
     static GraphPanel createPanel() throws Exception {
+        return createPanel(WIDTH, HEIGHT);
+    }
+
+    /** As above, with the panel at the given size (0 x 0 is what an applet has before its window is laid out). */
+    static GraphPanel createPanel(int width, int height) throws Exception {
         System.setProperty("java.awt.headless", "true");
         Field unsafeField = Class.forName("sun.misc.Unsafe").getDeclaredField("theUnsafe");
         unsafeField.setAccessible(true);
@@ -28,7 +33,7 @@ public class FloatingLayoutDiagnosticsTest {
         Crystal crystal = (Crystal) unsafe.allocateInstance(Crystal.class);
 
         GraphPanel panel = new GraphPanel(crystal);
-        panel.setSize(WIDTH, HEIGHT);
+        panel.setSize(width, height);
         Crystal.panel = panel;
         GraphPanel.showFloatingTiles = true;
         GraphPanel.runFast = false;
@@ -63,12 +68,46 @@ public class FloatingLayoutDiagnosticsTest {
         for (int iteration = 0; iteration < 3000; iteration++) {
             panel.relax();
         }
+        checkCrystal(panel);
+    }
 
+    /** The applet's panel has no size until its window is laid out: the grid must not be anchored to that. */
+    @Test
+    public void crystalStaysOnTheBoardGridWhenThePanelIsSizedLate() throws Exception {
+        GraphPanel panel = createPanel(0, 0);
+        for (int iteration = 0; iteration < 200; iteration++) {
+            panel.relax();
+        }
+        assertEquals("nothing grows before the panel has a size", 0, panel.tileLockManager.getLocksInUse());
+
+        panel.setSize(WIDTH, HEIGHT);
+        for (int iteration = 0; iteration < 3000; iteration++) {
+            panel.relax();
+        }
+        checkCrystal(panel);
+
+        // the seed is a corner tile in the top-left cell of the board centred on the panel
+        double boardLeft = (WIDTH - panel.boardColumns() * SCALE) / 2.0;
+        double boardTop = (HEIGHT - panel.boardRows() * SCALE) / 2.0;
+        boolean seedFound = false;
+        for (int i = 0; i < panel.getNumberOfTiles(); i++) {
+            Tile tile = panel.tiles[i];
+            if (tile.getEdgeCount() == 2 && Math.abs(tile.xWorldSpace - (boardLeft + SCALE / 2.0)) <= 1.5
+                    && Math.abs(tile.yWorldSpace - (boardTop + SCALE / 2.0)) <= 1.5) {
+                seedFound = true;
+            }
+        }
+        assertTrue("a corner tile sits in the top-left corner of the board", seedFound);
+    }
+
+    private void checkCrystal(GraphPanel panel) {
         int n = panel.getNumberOfTiles();
         int locks = panel.tileLockManager.getLocksInUse();
         int overlaps = 0;
         int touching = 0;
         int touchingMatching = 0;
+        int lockedTouching = 0;
+        int lockedMismatches = 0;
         int[] group = new int[n];
         for (int i = 0; i < n; i++) {
             group[i] = i;
@@ -88,8 +127,11 @@ public class FloatingLayoutDiagnosticsTest {
                 if (bothLocked && (horizontal || vertical)) {
                     touching++;
                     int sideOfFirst = horizontal ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);
+                    lockedTouching++;
                     if (facing(first, sideOfFirst) == facing(second, (sideOfFirst + 2) % 4)) {
                         touchingMatching++;
+                    } else {
+                        lockedMismatches++;
                     }
                     group[find(group, a)] = find(group, b);
                 }
@@ -129,6 +171,7 @@ public class FloatingLayoutDiagnosticsTest {
                 locks, largest, touchingMatching, touching, overlaps, cornersNear, corners, edgesNear, edges);
 
         assertEquals("tiles must not overlap", 0, overlaps);
+        assertEquals("locked tiles touching each other must match edge to edge (" + lockedTouching + " pairs)", 0, lockedMismatches);
         assertTrue("a crystal should have grown, locks " + locks, locks >= 60);
         assertTrue("locked tiles should be one connected crystal: " + largest + " of " + locks, largest >= locks * 0.9);
         assertTrue("every locked tile sits on the playing-area grid", onGrid(panel));
@@ -140,6 +183,9 @@ public class FloatingLayoutDiagnosticsTest {
         for (int i = 0; i < panel.getNumberOfTiles(); i++) {
             Tile tile = panel.tiles[i];
             if (panel.tileLockManager.isLocked(tile.getId())) {
+                if (!panel.isCellInBoard(panel.cellColumn(tile), panel.cellRow(tile))) {
+                    return false;
+                }
                 double offsetX = Math.abs(tile.xWorldSpace - panel.cellCentreX(panel.cellColumn(tile)));
                 double offsetY = Math.abs(tile.yWorldSpace - panel.cellCentreY(panel.cellRow(tile)));
                 if (offsetX > 1.5 || offsetY > 1.5) {
