@@ -63,9 +63,9 @@ public class FloatingLayoutDiagnosticsTest {
     }
 
     @Test
-    public void lockedTilesFormOneCrystalAndBorderTilesHeadForTheBorder() throws Exception {
+    public void crystalFillsMostOfTheBoardWithEveryNeighbourMatching() throws Exception {
         GraphPanel panel = createPanel();
-        for (int iteration = 0; iteration < 3000; iteration++) {
+        for (int iteration = 0; iteration < 6000; iteration++) {
             panel.relax();
         }
         checkCrystal(panel);
@@ -81,7 +81,7 @@ public class FloatingLayoutDiagnosticsTest {
         assertEquals("nothing grows before the panel has a size", 0, panel.tileLockManager.getLocksInUse());
 
         panel.setSize(WIDTH, HEIGHT);
-        for (int iteration = 0; iteration < 3000; iteration++) {
+        for (int iteration = 0; iteration < 6000; iteration++) {
             panel.relax();
         }
         checkCrystal(panel);
@@ -89,25 +89,46 @@ public class FloatingLayoutDiagnosticsTest {
         // the seed is a corner tile in the top-left cell of the board centred on the panel
         double boardLeft = (WIDTH - panel.boardColumns() * SCALE) / 2.0;
         double boardTop = (HEIGHT - panel.boardRows() * SCALE) / 2.0;
-        boolean seedFound = false;
+        boolean cornerInTopLeft = false;
         for (int i = 0; i < panel.getNumberOfTiles(); i++) {
             Tile tile = panel.tiles[i];
             if (tile.getEdgeCount() == 2 && Math.abs(tile.xWorldSpace - (boardLeft + SCALE / 2.0)) <= 1.5
                     && Math.abs(tile.yWorldSpace - (boardTop + SCALE / 2.0)) <= 1.5) {
-                seedFound = true;
+                cornerInTopLeft = true;
             }
         }
-        assertTrue("a corner tile sits in the top-left corner of the board", seedFound);
+        assertTrue("a corner tile sits in the top-left corner of the board", cornerInTopLeft);
     }
 
     private void checkCrystal(GraphPanel panel) {
         int n = panel.getNumberOfTiles();
-        int locks = panel.tileLockManager.getLocksInUse();
+        int placed = 0;
+        int cornersPlaced = 0;
+        int edgesPlaced = 0;
+        int misfits = 0;
+        for (int i = 0; i < n; i++) {
+            if (!panel.isSettled(i)) {
+                continue;
+            }
+            Tile tile = panel.tiles[i];
+            placed++;
+            int column = panel.cellColumn(tile);
+            int row = panel.cellRow(tile);
+            boolean onVerticalSide = column == 0 || column == panel.boardColumns() - 1;
+            boolean onHorizontalSide = row == 0 || row == panel.boardRows() - 1;
+            if (tile.getEdgeCount() == 2 && onVerticalSide && onHorizontalSide) {
+                cornersPlaced++;
+            } else if (tile.getEdgeCount() == 1 && (onVerticalSide ^ onHorizontalSide)) {
+                edgesPlaced++;
+            }
+            if (!panel.tileFitsCell(tile, tile.getOrientation(), column, row)) {
+                misfits++;
+            }
+        }
+
         int overlaps = 0;
         int touching = 0;
-        int touchingMatching = 0;
-        int lockedTouching = 0;
-        int lockedMismatches = 0;
+        int mismatches = 0;
         int[] group = new int[n];
         for (int i = 0; i < n; i++) {
             group[i] = i;
@@ -121,17 +142,16 @@ public class FloatingLayoutDiagnosticsTest {
                 if (SCALE - Math.abs(dx) > 1 && SCALE - Math.abs(dy) > 1) {
                     overlaps++;
                 }
-                boolean bothLocked = panel.tileLockManager.isLocked(first.getId()) && panel.tileLockManager.isLocked(second.getId());
+                if (!panel.isSettled(a) || !panel.isSettled(b)) {
+                    continue;
+                }
                 boolean horizontal = Math.abs(Math.abs(dx) - SCALE) <= 1.5 && Math.abs(dy) <= 1.5;
                 boolean vertical = Math.abs(Math.abs(dy) - SCALE) <= 1.5 && Math.abs(dx) <= 1.5;
-                if (bothLocked && (horizontal || vertical)) {
+                if (horizontal || vertical) {
                     touching++;
                     int sideOfFirst = horizontal ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);
-                    lockedTouching++;
-                    if (facing(first, sideOfFirst) == facing(second, (sideOfFirst + 2) % 4)) {
-                        touchingMatching++;
-                    } else {
-                        lockedMismatches++;
+                    if (facing(first, sideOfFirst) != facing(second, (sideOfFirst + 2) % 4)) {
+                        mismatches++;
                     }
                     group[find(group, a)] = find(group, b);
                 }
@@ -140,59 +160,21 @@ public class FloatingLayoutDiagnosticsTest {
         int[] size = new int[n];
         int largest = 0;
         for (int i = 0; i < n; i++) {
-            if (panel.tileLockManager.isLocked(panel.tiles[i].getId())) {
+            if (panel.isSettled(i)) {
                 largest = Math.max(largest, ++size[find(group, i)]);
             }
         }
-
-        double left = panel.cellCentreX(0);
-        double right = panel.cellCentreX(panel.boardColumns() - 1);
-        double top = panel.cellCentreY(0);
-        double bottom = panel.cellCentreY(panel.boardRows() - 1);
-        double near = SCALE * 2.5;
-        int corners = 0;
-        int cornersNear = 0;
-        int edges = 0;
-        int edgesNear = 0;
-        for (int i = 0; i < n; i++) {
-            Tile tile = panel.tiles[i];
-            boolean nearVerticalSide = Math.abs(tile.xWorldSpace - left) < near || Math.abs(tile.xWorldSpace - right) < near;
-            boolean nearHorizontalSide = Math.abs(tile.yWorldSpace - top) < near || Math.abs(tile.yWorldSpace - bottom) < near;
-            if (tile.getEdgeCount() == 2) {
-                corners++;
-                cornersNear += nearVerticalSide && nearHorizontalSide ? 1 : 0;
-            } else if (tile.getEdgeCount() == 1) {
-                edges++;
-                edgesNear += nearVerticalSide || nearHorizontalSide ? 1 : 0;
-            }
-        }
-        System.out.printf("after 3000 iterations: locks %d, one crystal of %d, %d/%d touching pairs match, overlaps %d, "
-                + "corner tiles at corners %d/%d, edge tiles at sides %d/%d%n",
-                locks, largest, touchingMatching, touching, overlaps, cornersNear, corners, edgesNear, edges);
+        System.out.printf("after 6000 iterations: %d of %d tiles placed (%d connected), %d touching pairs, %d mismatched, overlaps %d, "
+                + "corners placed %d, edge tiles placed %d, tiles unlocked to fill holes: %d swaps, %d plain fills%n",
+                placed, n, largest, touching, mismatches, overlaps, cornersPlaced, edgesPlaced, panel.holesSwapped, panel.holesFilled);
 
         assertEquals("tiles must not overlap", 0, overlaps);
-        assertEquals("locked tiles touching each other must match edge to edge (" + lockedTouching + " pairs)", 0, lockedMismatches);
-        assertTrue("a crystal should have grown, locks " + locks, locks >= 60);
-        assertTrue("locked tiles should be one connected crystal: " + largest + " of " + locks, largest >= locks * 0.9);
-        assertTrue("every locked tile sits on the playing-area grid", onGrid(panel));
-        assertTrue("corner tiles should head for corners: " + cornersNear + "/" + corners, cornersNear >= corners - 1);
-        assertTrue("edge tiles should head for the sides: " + edgesNear + "/" + edges, edgesNear >= edges * 0.7);
-    }
-
-    private static boolean onGrid(GraphPanel panel) {
-        for (int i = 0; i < panel.getNumberOfTiles(); i++) {
-            Tile tile = panel.tiles[i];
-            if (panel.tileLockManager.isLocked(tile.getId())) {
-                if (!panel.isCellInBoard(panel.cellColumn(tile), panel.cellRow(tile))) {
-                    return false;
-                }
-                double offsetX = Math.abs(tile.xWorldSpace - panel.cellCentreX(panel.cellColumn(tile)));
-                double offsetY = Math.abs(tile.yWorldSpace - panel.cellCentreY(panel.cellRow(tile)));
-                if (offsetX > 1.5 || offsetY > 1.5) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        assertEquals("neighbouring crystal tiles must match edge to edge (" + touching + " pairs)", 0, mismatches);
+        assertEquals("every crystal tile suits its cell (grey edges outside only)", 0, misfits);
+        assertTrue("most of the board should be placed: " + placed, placed >= 190);
+        assertTrue("the crystal should be one connected piece: " + largest + " of " + placed, largest >= placed * 0.9);
+        assertEquals("all four corner tiles should be in the corners", 4, cornersPlaced);
+        assertTrue("edge tiles should be on the border: " + edgesPlaced, edgesPlaced >= 40);
+        assertTrue("holes should have been filled by unlocking neighbours", panel.holesSwapped > 0);
     }
 }

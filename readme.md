@@ -40,7 +40,11 @@ Options
   edges must face outside it and nowhere else, so corner tiles only fit corners and edge tiles only the border. Unlocked corner and edge
   tiles drift towards a corner or side of the square (shared out by tile id) with their grey edges facing outwards. Tiles never overlap.
   A tile is also only placed when every tile already beside that cell matches it edge to edge, so locked neighbours always match; where nothing
-  fits, the crystal leaves a gap. The grid is fixed when the corner tile is locked, and nothing grows until the panel has a size.
+  fits, a hole is left for the moment. The grid is fixed when the corner tile is locked, and nothing grows until the panel has a size.
+  Holes are repaired every iteration: a free tile that matches every neighbour is placed; otherwise the tiles that stand in the way (up to two
+  neighbours, or a tile sitting in another cell that would fit) are unlocked and set free so a tile can go in, and the cells they vacated are
+  refilled. The swap is kept only if the number of placed tiles does not go down, otherwise it is put back, so the count never falls.
+  After a few thousand iterations about 220 of the 256 tiles are placed with every neighbouring pair matching.
 * **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
 * **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size. In a dense clump the overlap resolver keeps pushing for up to 60 passes and then moves any tile it could not separate to the nearest free spot.
 * **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.
@@ -71,4 +75,4 @@ Use the Gradle wrapper from the repository root:
 
 The desktop application jar is written to `build/libs/`. `CrystalsCommon.jar`, containing only the `crystalscommon` package, is written to `build/android-libs/` and compiled for Java 11 bytecode (`options.release = 11`). `uTurnAnd/libs/CrystalsCommon.jar` must be rebuilt from here and copied across whenever the `crystalscommon` package changes. Gradle itself runs on JDK 17 or newer; this project was verified with JDK 25.
 
-The existing JUnit tests include unfinished Eclipse stubs (`fail("Not yet implemented")`) that fail by design, so `test` and `build` report failures until those tests are completed (45 of 82 at the time of writing; the rest pass, including the tile drawing, collision and backtracking tests).
+All 23 JUnit tests pass (`./gradlew test`). The old empty Eclipse stubs (`fail("Not yet implemented")` and tests with no assertions) were removed; the remaining tests cover tile drawing, collision, backtracking and the floating-mode crystal (`FloatingLayoutDiagnosticsTest`, which runs the real 256 tiles headless).

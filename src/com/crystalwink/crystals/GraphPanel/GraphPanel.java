@@ -97,6 +97,8 @@ public class GraphPanel extends Panel
         }
         anchoredLeft = Double.NaN;
         anchoredTop = Double.NaN;
+        java.util.Arrays.fill(crystalMember, false);
+        seedTileIndex = -1;
         if (aFrame != null) {
             boolean large = scale >= TILE_SCALE_LARGE;
             FrameStructure.LINE_LENGTH = large ? 40 : 6;
@@ -452,6 +454,13 @@ public class GraphPanel extends Panel
                 System.out.printf("relax() - locksInUse %d != totalLockedTiles %d - investigate\n", locksInUse, totalLockedTiles);
             }
 
+            // crystal tiles show (and are treated by Scramble / Shake) as locked even after their lock level has run out
+            for (int aTileIndexNotId = 0; aTileIndexNotId < getNumberOfTiles(); aTileIndexNotId++) {
+                if (crystalMember[aTileIndexNotId] && tiles[aTileIndexNotId].lock == Tile.UNLOCKED) {
+                    tiles[aTileIndexNotId].lock = Tile.LOCKED;
+                }
+            }
+
             // ToDo - Check if solved
             if (tileLockManager.getLocksInUse() == tileLockManager.getMaxLocksAllowed()) {
                 System.out.printf("relax() - ** POSSIBLE SOLUTION ** All Tiles Locked! - %d iterations\n", iterations);
@@ -542,6 +551,9 @@ public class GraphPanel extends Panel
                     return;
                 }
                 growCrystal(aTileIndexNotId);
+                for (int attempt = 0; attempt < HOLE_ATTEMPTS; attempt++) {
+                    repairHole();
+                }
                 double dx = 0;
                 double dy = 0;
 
@@ -710,7 +722,9 @@ public class GraphPanel extends Panel
                     //System.out.printf("tileIndex=%d, dx=%f, dy=%f\n", tileIndex, eachTile.dx, eachTile.dy);
                     // move neighbour tile nearer if not locked or if only just locked
                     if (!tileLockManager.isLocked(eachTile.getId(), Tile.TEMPORARY_LOCKED)) {     // Allow TEMPORARY_LOCKED this move
-                        biasTowardsBorder(eachTile);
+                        if (!isSettled(tileIndexNotId)) {
+                            biasTowardsBorder(eachTile);
+                        }
                         //if (!eachTile.locked() || (eachTile.lock == Tile.TEMPORARY_LOCKED)) {     // Allow TEMPORARY_LOCKED this move
                         // TODO - Kills animation
                         //eachTile.xWorldSpace += Math.max(-5, Math.min(5, eachTile.dx));
@@ -769,7 +783,7 @@ public class GraphPanel extends Panel
                     }
                 }
 
-                resolveTileOverlaps(tiles, numberOfTiles, tileLockManager, dimension);
+                resolveTileOverlaps(tiles, numberOfTiles, tileLockManager, dimension, settledTiles());
 
                 for (aTileIndexNotId = 0; aTileIndexNotId < getNumberOfTiles(); aTileIndexNotId++) {
                     tiles[aTileIndexNotId].moveTile((int) tiles[aTileIndexNotId].xWorldSpace, (int) tiles[aTileIndexNotId].yWorldSpace);
@@ -859,12 +873,12 @@ public class GraphPanel extends Panel
         return -1;
     }
 
-    /** Index of a tile sitting exactly in a cell of the grid (locked or not), ignoring one tile, or -1. */
+    /** Index of a crystal tile sitting exactly in a cell of the grid (locked or not), ignoring one tile, or -1. */
     private int tileOnCell(int column, int row, int ignoreIndex) {
         double x = cellCentreX(column);
         double y = cellCentreY(row);
         for (int index = 0; index < numberOfTiles; index++) {
-            if (index != ignoreIndex && Math.abs(tiles[index].xWorldSpace - x) <= 2 && Math.abs(tiles[index].yWorldSpace - y) <= 2) {
+            if (index != ignoreIndex && crystalMember[index] && Math.abs(tiles[index].xWorldSpace - x) <= 2 && Math.abs(tiles[index].yWorldSpace - y) <= 2) {
                 return index;
             }
         }
@@ -880,7 +894,7 @@ public class GraphPanel extends Panel
      * A tile belongs in a cell when every side facing outside the playing area is the outside (grey) colour and no
      * side facing another cell is: so corner tiles only fit corners and edge tiles only the border.
      */
-    private boolean tileFitsCell(Tile tile, int orientation, int column, int row) {
+    boolean tileFitsCell(Tile tile, int orientation, int column, int row) {
         for (int side = 0; side < 4; side++) {
             boolean neighbourInside = isCellInBoard(column + SIDE_DC[side], row + SIDE_DR[side]);
             boolean grey = colourOnSide(tile, orientation, side) == 0;
@@ -933,6 +947,8 @@ public class GraphPanel extends Panel
         anchoredTop = Double.NaN;
         anchoredLeft = boardLeft();
         anchoredTop = boardTop();
+        seedTileIndex = seed;
+        crystalMember[seed] = true;
         seedTile.setOrientation(orientation);
         seedTile.xWorldSpace = cellCentreX(0);
         seedTile.yWorldSpace = cellCentreY(0);
@@ -984,7 +1000,8 @@ public class GraphPanel extends Panel
             return false;
         }
         Tile secondary = tiles[secondaryIndex];
-        if (secondaryIndex == primaryIndex || tileLockManager.isLocked(secondary.getId())) {
+        // growth only brings in free tiles; moving tiles that are already in the crystal is the job of repairHole
+        if (secondaryIndex == primaryIndex || crystalMember[secondaryIndex] || tileLockManager.isLocked(secondary.getId())) {
             return false;
         }
 
@@ -1006,8 +1023,8 @@ public class GraphPanel extends Panel
         double x = cellCentreX(column);
         double y = cellCentreY(row);
         int occupant = tileNear(x, y, secondaryIndex);
-        if (occupant >= 0 && tileLockManager.isLocked(tiles[occupant].getId())) {
-            return false;
+        if (occupant >= 0 && (crystalMember[occupant] || tileLockManager.isLocked(tiles[occupant].getId()))) {
+            return false;   // a crystal tile is already there; a wandering tile will be pushed out of the way
         }
 
         secondary.setOrientation(secondaryOrientation);
@@ -1029,7 +1046,287 @@ public class GraphPanel extends Panel
             }
         }
         secondary.lock = tileLockManager.getLockLevel(secondary.getId());
+        crystalMember[secondaryIndex] = true;
         return true;
+    }
+
+    // ---- repairing holes ---------------------------------------------------------------------------------------------
+    // A hole is an empty cell of the playing area beside the crystal. Wire growth cannot fill one that is boxed in by
+    // tiles whose edges no free tile matches. Then the neighbours that stand in the way are unlocked (taken out of the
+    // crystal and set free) so that a tile can go in, and the vacated cells are refilled if possible. The swap is
+    // kept only when the number of placed tiles does not go down; otherwise everything is put back.
+
+    private static final int HOLE_ATTEMPTS = 6;            // per relax() iteration
+    private static final int MAX_EVICTED_NEIGHBOURS = 2;   // neighbours that may be unlocked to let one tile in
+    private static final int SWAPS_TRIED = 6;              // candidate tiles tried per hole
+    private static final double CORNER_FOCUS = 0.15;      // share of hole searches that look at a corner cell
+    private static final double PLATEAU_ACCEPT = 0.3;      // chance of keeping a swap that gains nothing (explores)
+    private int seedTileIndex = -1;
+    int holesFilled;      // tiles placed into a hole without disturbing anything
+    int holesSwapped;     // swaps that unlocked tiles and ended with at least as many placed tiles
+
+    /**
+     * The tiles that have been placed into the crystal (by index), locked or not. A tile that merely happens to be
+     * pushed up against the crystal is not one, so it is never counted as a neighbour whose edges must match.
+     */
+    private final boolean[] crystalMember = new boolean[CrystalGlobals.MAX_TILES];
+
+    boolean isCrystalMember(int index) {
+        return crystalMember[index];
+    }
+
+    /** True for a crystal tile that is sitting on its cell of the playing area. */
+    boolean isSettled(int index) {
+        Tile tile = tiles[index];
+        int column = cellColumn(tile);
+        int row = cellRow(tile);
+        return crystalMember[index] && isCellInBoard(column, row)
+                && Math.abs(tile.xWorldSpace - cellCentreX(column)) <= 2 && Math.abs(tile.yWorldSpace - cellCentreY(row)) <= 2;
+    }
+
+    private boolean[] settledTiles() {
+        boolean[] settled = new boolean[numberOfTiles];
+        for (int index = 0; index < numberOfTiles; index++) {
+            settled[index] = isSettled(index);
+        }
+        return settled;
+    }
+
+    private static final class TileMemory {
+        final int index;
+        final boolean wasMember;
+        final Tile tile;
+        final double x;
+        final double y;
+        final int orientation;
+        final int lockLevel;
+        final boolean wasLocked;
+
+        TileMemory(int index, Tile tile, boolean wasMember, LockManager locks) {
+            this.index = index;
+            this.wasMember = wasMember;
+            this.tile = tile;
+            this.x = tile.xWorldSpace;
+            this.y = tile.yWorldSpace;
+            this.orientation = tile.getOrientation();
+            this.wasLocked = locks.isLocked(tile.getId());
+            this.lockLevel = locks.getLockLevel(tile.getId());
+        }
+    }
+
+    private final java.util.ArrayList<TileMemory> memory = new java.util.ArrayList<>();
+
+    private void remember(int tileIndex) {
+        for (TileMemory entry : memory) {
+            if (entry.index == tileIndex) {
+                return;
+            }
+        }
+        memory.add(new TileMemory(tileIndex, tiles[tileIndex], crystalMember[tileIndex], tileLockManager));
+    }
+
+    private void rollback() {
+        for (TileMemory entry : memory) {
+            crystalMember[entry.index] = entry.wasMember;
+            entry.tile.xWorldSpace = entry.x;
+            entry.tile.yWorldSpace = entry.y;
+            entry.tile.dx = 0;
+            entry.tile.dy = 0;
+            entry.tile.setOrientation(entry.orientation);
+            if (entry.wasLocked) {
+                tileLockManager.updateLock(entry.tile.getId(), entry.lockLevel);
+                entry.tile.lock = entry.lockLevel;
+            } else {
+                tileLockManager.removeLock(entry.tile.getId());
+                entry.tile.lock = Tile.UNLOCKED;
+            }
+        }
+        memory.clear();
+    }
+
+    private void placeTile(int tileIndex, int orientation, int column, int row) {
+        Tile tile = tiles[tileIndex];
+        remember(tileIndex);
+        crystalMember[tileIndex] = true;
+        tile.setOrientation(orientation);
+        tile.xWorldSpace = cellCentreX(column);
+        tile.yWorldSpace = cellCentreY(row);
+        tile.dx = 0;
+        tile.dy = 0;
+        int remaining = Math.max(2, getNumberOfTiles() - tileLockManager.getLocksInUse());
+        tileLockManager.updateLock(tile.getId(), remaining * remaining);
+        tile.lock = tileLockManager.getLockLevel(tile.getId());
+    }
+
+    /** Unlock a tile and put it down somewhere around the playing area, free to be used again. */
+    private void evictTile(int tileIndex) {
+        Tile tile = tiles[tileIndex];
+        remember(tileIndex);
+        crystalMember[tileIndex] = false;
+        tileLockManager.removeLock(tile.getId());
+        tile.lock = Tile.UNLOCKED;
+        double scale = Tile.getSegmentScale();
+        double left = boardLeft() - scale;
+        double top = boardTop() - scale;
+        double right = boardLeft() + (boardColumns() + 1) * scale;
+        double bottom = boardTop() + (boardRows() + 1) * scale;
+        double x = tile.xWorldSpace;
+        double y = tile.yWorldSpace;
+        for (int attempt = 0; attempt < 30; attempt++) {
+            x = scale / 2 + Math.random() * Math.max(1, getSize().width - scale);
+            y = scale / 2 + Math.random() * Math.max(1, getSize().height - scale);
+            if (x < left || x > right || y < top || y > bottom) {
+                break;
+            }
+        }
+        tile.xWorldSpace = x;
+        tile.yWorldSpace = y;
+        tile.dx = 0;
+        tile.dy = 0;
+    }
+
+    private static final class Candidate {
+        final int tile;
+        final int orientation;
+        final int[] conflictingNeighbours;   // tile indices whose touching edge does not match
+
+        Candidate(int tile, int orientation, int[] conflictingNeighbours) {
+            this.tile = tile;
+            this.orientation = orientation;
+            this.conflictingNeighbours = conflictingNeighbours;
+        }
+    }
+
+    /**
+     * Every tile and orientation that suits the cell and mismatches at most maxConflicts of the tiles beside it.
+     * Settled tiles are only offered when asked for (using one leaves its own cell empty). The seed tile is never
+     * moved, and a candidate that would need it unlocked is not offered.
+     */
+    private java.util.ArrayList<Candidate> findCandidates(int column, int row, int maxConflicts, boolean includeSettled, boolean[] settled) {
+        int[] neighbour = new int[4];
+        for (int side = 0; side < 4; side++) {
+            neighbour[side] = tileOnCell(column + SIDE_DC[side], row + SIDE_DR[side], -1);
+        }
+        java.util.ArrayList<Candidate> found = new java.util.ArrayList<>();
+        for (int index = 0; index < numberOfTiles; index++) {
+            if (index == seedTileIndex || (settled[index] && !includeSettled)) {
+                continue;
+            }
+            boolean nextToCell = false;
+            for (int side = 0; side < 4; side++) {
+                nextToCell |= neighbour[side] == index;
+            }
+            if (nextToCell) {
+                continue;
+            }
+            Tile tile = tiles[index];
+            for (int orientation = 0; orientation < 4; orientation++) {
+                if (!tileFitsCell(tile, orientation, column, row)) {
+                    continue;
+                }
+                int[] conflicts = new int[4];
+                int conflictCount = 0;
+                boolean usable = true;
+                for (int side = 0; side < 4 && usable; side++) {
+                    if (neighbour[side] >= 0 && colourOnSide(tile, orientation, side)
+                            != colourOnSide(tiles[neighbour[side]], tiles[neighbour[side]].getOrientation(), (side + 2) % 4)) {
+                        usable = neighbour[side] != seedTileIndex && conflictCount < maxConflicts;
+                        conflicts[conflictCount++] = neighbour[side];
+                    }
+                }
+                if (usable) {
+                    found.add(new Candidate(index, orientation, java.util.Arrays.copyOf(conflicts, conflictCount)));
+                }
+            }
+        }
+        return found;
+    }
+
+    /** A random empty cell of the playing area with at least one tile beside it, or null. */
+    private int[] pickHole() {
+        for (int attempt = 0; attempt < 40; attempt++) {
+            int column = (int) (Math.random() * boardColumns());
+            int row = (int) (Math.random() * boardRows());
+            if (Math.random() < CORNER_FOCUS) {
+                // the four corner cells are the hardest to get right, so look at them more often
+                column = Math.random() < 0.5 ? 0 : boardColumns() - 1;
+                row = Math.random() < 0.5 ? 0 : boardRows() - 1;
+            }
+            if (tileOnCell(column, row, -1) >= 0) {
+                continue;
+            }
+            for (int side = 0; side < 4; side++) {
+                if (isCellInBoard(column + SIDE_DC[side], row + SIDE_DR[side])
+                        && tileOnCell(column + SIDE_DC[side], row + SIDE_DR[side], -1) >= 0) {
+                    return new int[] {column, row};
+                }
+            }
+        }
+        return null;
+    }
+
+    private static <T> T random(java.util.List<T> list) {
+        return list.get((int) (Math.random() * list.size()));
+    }
+
+    /**
+     * Try to fill one hole: with a free tile that matches every neighbour, or else by unlocking the neighbour(s) (or
+     * moving a tile out of another cell) that stand in the way. Returns true when the board changed.
+     */
+    private boolean repairHole() {
+        int[] hole = pickHole();
+        if (hole == null) {
+            return false;
+        }
+        int column = hole[0];
+        int row = hole[1];
+        boolean[] settled = settledTiles();
+
+        java.util.ArrayList<Candidate> exact = findCandidates(column, row, 0, false, settled);
+        if (!exact.isEmpty()) {
+            Candidate chosen = random(exact);
+            memory.clear();
+            placeTile(chosen.tile, chosen.orientation, column, row);
+            memory.clear();
+            holesFilled++;
+            return true;
+        }
+
+        java.util.ArrayList<Candidate> swaps = findCandidates(column, row, MAX_EVICTED_NEIGHBOURS, true, settled);
+        java.util.Collections.shuffle(swaps);
+        // prefer the swaps that disturb the fewest tiles
+        swaps.sort((a, b) -> Integer.compare(a.conflictingNeighbours.length, b.conflictingNeighbours.length));
+        for (int attempt = 0; attempt < Math.min(SWAPS_TRIED, swaps.size()); attempt++) {
+            Candidate chosen = swaps.get(attempt);
+            memory.clear();
+
+            java.util.ArrayList<int[]> vacated = new java.util.ArrayList<>();
+            if (settled[chosen.tile]) {
+                vacated.add(new int[] {cellColumn(tiles[chosen.tile]), cellRow(tiles[chosen.tile])});
+            }
+            for (int neighbourIndex : chosen.conflictingNeighbours) {
+                vacated.add(new int[] {cellColumn(tiles[neighbourIndex]), cellRow(tiles[neighbourIndex])});
+                evictTile(neighbourIndex);
+            }
+            placeTile(chosen.tile, chosen.orientation, column, row);
+
+            int gained = 1 - vacated.size();
+            for (int[] cell : vacated) {
+                java.util.ArrayList<Candidate> refill = findCandidates(cell[0], cell[1], 0, false, settledTiles());
+                if (!refill.isEmpty()) {
+                    Candidate again = random(refill);
+                    placeTile(again.tile, again.orientation, cell[0], cell[1]);
+                    gained++;
+                }
+            }
+            if (gained > 0 || (gained == 0 && Math.random() < PLATEAU_ACCEPT)) {
+                memory.clear();
+                holesSwapped++;
+                return true;
+            }
+            rollback();
+        }
+        return false;
     }
 
     private static final double BORDER_PULL = 3;        // pixels per iteration
@@ -1093,6 +1390,14 @@ public class GraphPanel extends Panel
     private static final double OVERLAP_EPSILON = 0.001;
 
     static void resolveTileOverlaps(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension) {
+        resolveTileOverlaps(tiles, numberOfTiles, tileLockManager, dimension, null);
+    }
+
+    /**
+     * @param settled tiles sitting on a cell of the playing area (may be null); they are treated like locked tiles so
+     *                a wandering tile is pushed away from them rather than the other way round
+     */
+    static void resolveTileOverlaps(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension, boolean[] settled) {
         double minimumSeparation = Tile.getSegmentScale();
         if (minimumSeparation <= 0) {
             return;
@@ -1104,6 +1409,10 @@ public class GraphPanel extends Panel
         for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
             locked[tileIndex] = tileLockManager.isLocked(tiles[tileIndex].getId(), Tile.TEMPORARY_LOCKED);
             lockLevel[tileIndex] = tileLockManager.getLockLevel(tiles[tileIndex].getId());
+            if (settled != null && settled[tileIndex]) {
+                locked[tileIndex] = true;
+                lockLevel[tileIndex] = Math.max(lockLevel[tileIndex], 1);
+            }
         }
 
         // Pushing one tile off another can push it onto a third, so a dense clump needs many passes to settle;
@@ -1180,7 +1489,7 @@ public class GraphPanel extends Panel
                 return;
             }
         }
-        relocateOverlappingTiles(tiles, numberOfTiles, tileLockManager, dimension);
+        relocateOverlappingTiles(tiles, numberOfTiles, tileLockManager, dimension, settled);
     }
 
     private static boolean overlaps(Tile first, Tile second, double separation) {
@@ -1203,7 +1512,7 @@ public class GraphPanel extends Panel
      * Last resort for tiles that pushing could not separate (a tile trapped between others in a dense clump): the weaker
      * tile of each overlapping pair is moved to the nearest empty spot on the panel, searching outwards in rings.
      */
-    private static void relocateOverlappingTiles(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension) {
+    private static void relocateOverlappingTiles(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension, boolean[] settled) {
         double separation = Tile.getSegmentScale();
         double step = separation / 2;
         double minimumCenter = separation / 2;
@@ -1226,6 +1535,12 @@ public class GraphPanel extends Panel
                 }
                 int moverIndex = tileLockManager.getLockLevel(tiles[otherIndex].getId())
                         < tileLockManager.getLockLevel(tiles[firstIndex].getId()) ? otherIndex : firstIndex;
+                if (settled != null && settled[moverIndex]) {
+                    moverIndex = moverIndex == firstIndex ? otherIndex : firstIndex;   // crystal tiles stay on the grid
+                    if (settled[moverIndex]) {
+                        continue;
+                    }
+                }
                 Tile mover = tiles[moverIndex];
 
                 double bestX = 0;
