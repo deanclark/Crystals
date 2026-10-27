@@ -19,7 +19,7 @@ public class BoardRecordTest {
         entries.add(new BoardRecord.Entry(12, 0, 0, 3, new int[] {0, 5, 7, 0}));
         entries.add(new BoardRecord.Entry(200, 1, 0, 0, new int[] {0, 2, 9, 5}));
         entries.add(new BoardRecord.Entry(7, 0, 1, 2, new int[] {7, 1, 0, 0}));
-        return new BoardRecord(4, 2, 2, entries);
+        return new BoardRecord(BoardRecord.FLOATING, 4, 2, 2, entries);
     }
 
     @Test

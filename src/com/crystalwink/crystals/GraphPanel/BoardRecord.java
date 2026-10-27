@@ -28,16 +28,16 @@ import java.util.List;
  * #  12  45 ...
  * </pre>
  */
-final class BoardRecord {
+public final class BoardRecord {
     /** One placed tile. */
-    static final class Entry {
-        final int tileId;
-        final int column;
-        final int row;
-        final int orientation;
-        final int[] colours;   // top, right, bottom, left
+    public static final class Entry {
+        public final int tileId;
+        public final int column;
+        public final int row;
+        public final int orientation;
+        public final int[] colours;   // top, right, bottom, left
 
-        Entry(int tileId, int column, int row, int orientation, int[] colours) {
+        public Entry(int tileId, int column, int row, int orientation, int[] colours) {
             this.tileId = tileId;
             this.column = column;
             this.row = row;
@@ -46,25 +46,35 @@ final class BoardRecord {
         }
     }
 
-    final int tiles;
-    final int columns;
-    final int rows;
-    final List<Entry> entries;
+    /** File name prefixes: floating-mode boards and frame-mode boards keep separate records of the best. */
+    public static final String FLOATING = "best";
+    public static final String FRAME = "frame";
 
-    BoardRecord(int tiles, int columns, int rows, List<Entry> entries) {
+    /** Boards with fewer than this share of the tiles are not worth a file. */
+    public static double minimumFraction = 0.85;
+
+    public final String mode;
+    public final int tiles;
+    public final int columns;
+    public final int rows;
+    public final List<Entry> entries;
+
+    public BoardRecord(String mode, int tiles, int columns, int rows, List<Entry> entries) {
+        this.mode = mode;
         this.tiles = tiles;
         this.columns = columns;
         this.rows = rows;
         this.entries = entries;
     }
 
-    int placed() {
+    public int placed() {
         return entries.size();
     }
 
-    String format(LocalDateTime when) {
+    public String format(LocalDateTime when) {
         StringBuilder text = new StringBuilder();
         text.append("# Crystals board\n");
+        text.append("mode=").append(mode).append('\n');
         text.append("tiles=").append(tiles).append('\n');
         text.append("columns=").append(columns).append('\n');
         text.append("rows=").append(rows).append('\n');
@@ -95,7 +105,8 @@ final class BoardRecord {
         return text.toString();
     }
 
-    static BoardRecord parse(String text) {
+    public static BoardRecord parse(String text) {
+        String mode = FLOATING;
         int tiles = -1;
         int columns = -1;
         int rows = -1;
@@ -107,7 +118,9 @@ final class BoardRecord {
             }
             if (line.contains("=")) {
                 String[] pair = line.split("=", 2);
-                if (pair[0].equals("tiles")) {
+                if (pair[0].equals("mode")) {
+                    mode = pair[1].trim();
+                } else if (pair[0].equals("tiles")) {
                     tiles = Integer.parseInt(pair[1].trim());
                 } else if (pair[0].equals("columns")) {
                     columns = Integer.parseInt(pair[1].trim());
@@ -136,32 +149,39 @@ final class BoardRecord {
                 throw new IllegalArgumentException("tile " + entry.tileId + " is outside the board");
             }
         }
-        return new BoardRecord(tiles, columns, rows, entries);
+        return new BoardRecord(mode, tiles, columns, rows, entries);
     }
 
-    static BoardRecord read(Path file) throws IOException {
+    public static BoardRecord read(Path file) throws IOException {
         return parse(new String(Files.readAllBytes(file), StandardCharsets.UTF_8));
     }
 
-    /** Writes best-&lt;placed&gt;-&lt;date and time&gt;.txt in the directory (created if need be) and returns the file. */
-    Path save(Path directory) throws IOException {
+    /** Writes &lt;prefix&gt;-&lt;placed&gt;-&lt;date and time&gt;.txt in the directory (created if need be) and returns the file. */
+    public Path save(Path directory) throws IOException {
+        String prefix = FRAME.equals(mode) ? FRAME : FLOATING;
         Files.createDirectories(directory);
         LocalDateTime now = LocalDateTime.now();
-        Path file = directory.resolve("best-" + placed() + "-" + now.format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + ".txt");
+        String stamp = now.format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        Path file = directory.resolve(prefix + "-" + placed() + "-" + stamp + ".txt");
         for (int suffix = 2; Files.exists(file); suffix++) {
-            file = directory.resolve("best-" + placed() + "-" + now.format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss")) + "-" + suffix + ".txt");
+            file = directory.resolve(prefix + "-" + placed() + "-" + stamp + "-" + suffix + ".txt");
         }
         Files.write(file, format(now).getBytes(StandardCharsets.UTF_8));
         return file;
     }
 
     /** The most tiles placed in any best-*.txt already in the directory (0 if none): only better boards are worth saving. */
-    static int bestSaved(Path directory) {
+    public static int bestSaved(Path directory) {
+        return bestSaved(directory, FLOATING);
+    }
+
+    /** As above for the files with the given prefix (FLOATING or FRAME). */
+    public static int bestSaved(Path directory, String prefix) {
         int best = 0;
         if (!Files.isDirectory(directory)) {
             return 0;
         }
-        try (DirectoryStream<Path> files = Files.newDirectoryStream(directory, "best-*.txt")) {
+        try (DirectoryStream<Path> files = Files.newDirectoryStream(directory, prefix + "-*.txt")) {
             for (Path file : files) {
                 String[] part = file.getFileName().toString().split("-");
                 try {

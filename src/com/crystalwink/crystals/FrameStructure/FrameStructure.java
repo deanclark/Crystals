@@ -26,6 +26,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import com.crystalwink.crystals.GraphPanel.GraphPanel;
+import com.crystalwink.crystals.GraphPanel.BoardRecord;
+import com.crystalwink.crystals.GraphPanel.GraphPanel;
 import com.crystalwink.crystalscommon.CrystalGlobals;
 import com.crystalwink.crystalscommon.Tile.Tile;
 import com.crystalwink.crystalscommon.TilePlacementInfo.TilePlacementInfo;
@@ -1209,6 +1211,7 @@ public class FrameStructure extends GridFrameStructure{
 //        Tile aTile = null;
 
         int totalTilesVerified = 0;  // @todo disalow duplicates
+        verifiedEntries.clear();
         int isAttached = 0;
 
         // reset list of previously found tiles
@@ -1285,6 +1288,7 @@ public class FrameStructure extends GridFrameStructure{
                                 // if a tile was found, reset the outer loop
                                 numberOfLockedNeighbours = 4;
                                 totalTilesVerified = 0;
+                                verifiedEntries.clear();
 
 //                                System.out.println("verifyFrame() - Locking Tile (NOT ALREADY FOUND) xWorldSpace:" + rowI + " yWorldSpace:" + colI + " tileIdFound " + tileIdFound);
 
@@ -1293,10 +1297,7 @@ public class FrameStructure extends GridFrameStructure{
                         if (numberOfLockedNeighbours == 1) {
                             ++totalTilesVerified;
 
-                            // Trace in HINT format 139, 8, 9, 1
-                            if (improvedTileCountVerified) {
-                                System.out.println("verifyFrame() - Tile id, col, row, orientation " + tileIdFound + ", " + colI + ", " + rowI + ", " + localOrientation);
-                            }
+                            verifiedEntries.add(new BoardRecord.Entry(tileIdFound, colI - 1, rowI - 1, localOrientation, cellColours(rowI, colI)));
                         }
                     }
 
@@ -1319,7 +1320,109 @@ public class FrameStructure extends GridFrameStructure{
         } else {
             improvedTileCountVerified = false;
         }
+        recordIfBest();
     }
+
+    // ---- keeping the best frames ---------------------------------------------------------------------------------------
+    // verifyFrame() finds the tiles that fit the frame; the best of them are written to a file (BoardRecord, the same
+    // format floating mode uses, so a frame can seed a floating run and vice versa) instead of being dumped to the console.
+
+    private final java.util.ArrayList<BoardRecord.Entry> verifiedEntries = new java.util.ArrayList<>();
+    private int savedPlaced = -1;
+    public java.nio.file.Path lastRecordFile;
+
+    /** The tiles found by the latest verifyFrame(), one entry per tile (0-based column and row). */
+    public BoardRecord verifiedBoard() {
+        return new BoardRecord(BoardRecord.FRAME, nTilesLocal, HorizontalColumnCells, VerticalRowCells, new java.util.ArrayList<>(verifiedEntries));
+    }
+
+    private int[] cellColours(int row, int col) {
+        return new int[] {
+            frameArray[(row - 1) * 2][col - 1],
+            frameArray[((row - 1) * 2) + 1][col],
+            frameArray[((row - 1) * 2) + 2][col - 1],
+            frameArray[((row - 1) * 2) + 1][col - 1]};
+    }
+
+    /** Write the verified tiles to a file when they are more than any frame already on file (and a worthwhile share of the tiles). */
+    private void recordIfBest() {
+        int placed = verifiedEntries.size();
+        if (!GraphPanel.recordingEnabled || nTilesLocal == 0 || placed < Math.ceil(nTilesLocal * BoardRecord.minimumFraction)) {
+            return;
+        }
+        if (savedPlaced < 0) {
+            savedPlaced = BoardRecord.bestSaved(GraphPanel.boardDirectory, BoardRecord.FRAME);
+        }
+        if (placed <= savedPlaced) {
+            return;
+        }
+        try {
+            lastRecordFile = verifiedBoard().save(GraphPanel.boardDirectory);
+            savedPlaced = placed;
+            System.out.printf("Saved frame of %d of %d tiles to %s%n", placed, nTilesLocal, lastRecordFile.toAbsolutePath());
+        } catch (java.io.IOException | RuntimeException problem) {
+            System.err.println("Could not save the frame: " + problem);
+            savedPlaced = placed;   // do not retry on every verify
+        }
+    }
+
+    private Tile tileWithId(int id) {
+        for (int index = 0; index < nTilesLocal; index++) {
+            if (tilesLocal[index] != null && tilesLocal[index].getId() == id) {
+                return tilesLocal[index];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Put the tiles of a saved board into the frame as locked hint tiles (their edges are set from the tile's real colours),
+     * in the order of the file. Entries that do not fit - unknown or repeated tile, cell outside the frame, an edge that
+     * disagrees with a neighbour already in - are skipped. Returns the number of tiles put in.
+     */
+    public int importBoard(BoardRecord record) {
+        final int[] sides = {CrystalGlobals.SEGMENT_INDEX_ABOVE, CrystalGlobals.SEGMENT_INDEX_RIGHT,
+            CrystalGlobals.SEGMENT_INDEX_BELOW, CrystalGlobals.SEGMENT_INDEX_LEFT};
+        int imported = 0;
+        for (BoardRecord.Entry entry : record.entries) {
+            int row = entry.row + 1;
+            int col = entry.column + 1;
+            Tile tile = tileWithId(entry.tileId);
+            if (tile == null || row < 1 || row > VerticalRowCells || col < 1 || col > HorizontalColumnCells
+                    || tileIdAlreadyFound[entry.tileId]) {
+                System.out.println("importBoard() - skipped tile " + entry.tileId + " at column " + entry.column + " row " + entry.row);
+                continue;
+            }
+            int[] colour = new int[4];
+            boolean fits = true;
+            for (int side = 0; side < 4; side++) {   // side 0 top, 1 right, 2 bottom, 3 left; segment s faces side (s + orientation) % 4
+                colour[side] = tile.tileSegment[(side - entry.orientation + 8) % 4].colour;
+                int existing = frameArray[getGridIndex(CrystalGlobals.ROW_SELECTION, row, col, sides[side])]
+                        [getGridIndex(CrystalGlobals.COL_SELECTION, row, col, sides[side])];
+                fits &= existing == -1 || existing == colour[side];
+            }
+            if (!fits) {
+                System.out.println("importBoard() - tile " + entry.tileId + " does not fit its neighbours at column " + entry.column + " row " + entry.row);
+                continue;
+            }
+            for (int side = 0; side < 4; side++) {
+                setColour(getGridIndex(CrystalGlobals.ROW_SELECTION, row, col, sides[side]),
+                        getGridIndex(CrystalGlobals.COL_SELECTION, row, col, sides[side]), colour[side], CrystalGlobals.LOCKED_HINT);
+            }
+            tileIdAlreadyFound[entry.tileId] = true;
+            if (tilePlacementOrder2[gridCellFullyPlacedGet()] == null) {
+                tilePlacementOrder2[gridCellFullyPlacedGet()] = new TilePlacementInfo(row, col, entry.tileId);
+            } else {
+                tilePlacementOrder2[gridCellFullyPlacedGet()].ROW_INDEX = row;
+                tilePlacementOrder2[gridCellFullyPlacedGet()].COL_INDEX = col;
+                tilePlacementOrder2[gridCellFullyPlacedGet()].TILEID_INDEX = entry.tileId;
+            }
+            gridCellFullyPlacedUp();
+            imported++;
+        }
+        return imported;
+    }
+
 
     public int randomizeTileUntilValid(int rowI, int colI, int MAX_ITERATIONS) {
         //int MAX_ITERATIONS = 2;

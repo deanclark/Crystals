@@ -87,7 +87,7 @@ Use the Gradle wrapper from the repository root:
 
 The desktop application jar is written to `build/libs/`. `CrystalsCommon.jar`, containing only the `crystalscommon` package, is written to `build/android-libs/` and compiled for Java 11 bytecode (`options.release = 11`). `uTurnAnd/libs/CrystalsCommon.jar` must be rebuilt from here and copied across whenever the `crystalscommon` package changes. Gradle itself runs on JDK 17 or newer; this project was verified with JDK 25.
 
-All 32 JUnit tests pass (`./gradlew test`). The old empty Eclipse stubs (`fail("Not yet implemented")` and tests with no assertions) were removed; the remaining tests cover tile drawing, collision, backtracking and the floating-mode crystal (`FloatingLayoutDiagnosticsTest`, which runs the real 256 tiles headless).
+All 33 JUnit tests pass (`./gradlew test`). The old empty Eclipse stubs (`fail("Not yet implemented")` and tests with no assertions) were removed; the remaining tests cover tile drawing, collision, backtracking and the floating-mode crystal (`FloatingLayoutDiagnosticsTest`, which runs the real 256 tiles headless).
 
 ## Keeping the best boards
 
@@ -96,7 +96,12 @@ least 85% of the tiles, so a session leaves a few dozen small files). A complete
 The file is plain text: `tiles`, `columns`, `rows`, `placed`, `saved`, then one line per placed tile (`tile-id column row orientation top right
 bottom left`, the last four being the edge colours as shown) and a grid of tile ids by cell for reading. Class `BoardRecord`.
 
-* `./gradlew run -Dcrystals.import=best-boards/best-230-....txt` starts the crystal from a saved board and the search carries on from it.
+* Frame mode writes its best frames too: whenever `verifyFrame()` finds more tiles than any `frame-<placed>-*.txt` on file (and at least 85% of
+  the tiles) the verified tiles are written to `best-boards/frame-<placed>-<date>.txt` (replacing the old console dump of every tile). The file
+  has `mode=frame` and otherwise the same format, so a frame can seed floating mode and a floating board can seed frame mode.
+* `./gradlew run "-Dcrystals.import=best-boards/best-230-....txt"` starts the crystal from a saved board and the search carries on from it. In
+  frame mode (Floating unticked) the same file is imported the first time the frame runs: its tiles go in as locked hint tiles using their real
+  colours, in the order of the file (PowerShell needs the quotes). Tiles that do not fit are skipped and logged.
 * `-Dcrystals.boards=<directory>` changes where boards are written (default `best-boards` in the working directory). Only boards beating the
   best file already in that directory are saved. The directory is not git-ignored: commit the files worth keeping.
 

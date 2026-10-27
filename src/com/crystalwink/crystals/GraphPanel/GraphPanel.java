@@ -1530,9 +1530,8 @@ public class GraphPanel extends Panel
     // boards are written, so a session leaves at most a few dozen small files. A file can be loaded to seed a later run.
 
     /** Directory the best boards are written to (-Dcrystals.boards=...). */
-    static java.nio.file.Path boardDirectory = java.nio.file.Paths.get(System.getProperty("crystals.boards", "best-boards"));
-    static boolean recordingEnabled = true;
-    private static final double MIN_RECORDED_FRACTION = 0.85;   // boards below this share of the tiles are not worth a file
+    public static java.nio.file.Path boardDirectory = java.nio.file.Paths.get(System.getProperty("crystals.boards", "best-boards"));
+    public static boolean recordingEnabled = true;
     private static final int RECORD_INTERVAL = 100;             // iterations between files for a board still being improved
     private int savedPlaced = -1;                                // most tiles on any file in the directory (read once)
     private int lastRecordIteration;
@@ -1540,6 +1539,17 @@ public class GraphPanel extends Panel
     private final Board scratch = new Board();
     private java.nio.file.Path pendingImport = System.getProperty("crystals.import") == null
             ? null : java.nio.file.Paths.get(System.getProperty("crystals.import"));
+
+    private java.nio.file.Path pendingFrameImport = pendingImport;   // the same file seeds frame mode the first time it runs
+
+    private void importIntoFrame(java.nio.file.Path file) {
+        try {
+            int imported = aFrame.importBoard(BoardRecord.read(file));
+            System.out.println("Imported " + imported + " tiles into the frame from " + file.toAbsolutePath());
+        } catch (java.io.IOException | RuntimeException problem) {
+            System.err.println("Could not import " + file + " into the frame: " + problem);
+        }
+    }
 
     private int savedPlaced() {
         if (savedPlaced < 0) {
@@ -1549,7 +1559,7 @@ public class GraphPanel extends Panel
     }
 
     private int minimumRecorded() {
-        return (int) Math.ceil(numberOfTiles * MIN_RECORDED_FRACTION);
+        return (int) Math.ceil(numberOfTiles * BoardRecord.minimumFraction);
     }
 
     private BoardRecord recordOf(Board board) {
@@ -1568,7 +1578,7 @@ public class GraphPanel extends Panel
             entries.add(new BoardRecord.Entry(tile.getId(), column, row, board.orientation[index], colours));
         }
         entries.sort((a, b) -> a.row != b.row ? Integer.compare(a.row, b.row) : Integer.compare(a.column, b.column));
-        return new BoardRecord(numberOfTiles, boardColumns(), boardRows(), entries);
+        return new BoardRecord(BoardRecord.FLOATING, numberOfTiles, boardColumns(), boardRows(), entries);
     }
 
     /** Write the board to a file when it has more tiles than any board on file. */
@@ -2134,6 +2144,10 @@ public class GraphPanel extends Panel
         else
         {
             // display frameStructure based implementation.  also runs the update for the frameStructure base implementation
+            if (pendingFrameImport != null) {
+                importIntoFrame(pendingFrameImport);
+                pendingFrameImport = null;
+            }
             Crystal.panel.aFrame.drawFrame(offScreenGraphics, palate, wireframeTileModeCheckbox);          // display frame based implementation
             
         }
