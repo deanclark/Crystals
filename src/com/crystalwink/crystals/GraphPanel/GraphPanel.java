@@ -981,13 +981,20 @@ public class GraphPanel extends Panel
         }
     }  // relax
 
+    private static final int MAX_OVERLAP_PASSES = 60;
+    private static final int STUCK_PASSES = 20;
+    private static final double OVERLAP_EPSILON = 0.001;
+
     static void resolveTileOverlaps(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension) {
         double minimumSeparation = Tile.getSegmentScale();
         if (minimumSeparation <= 0) {
             return;
         }
 
-        for (int pass = 0; pass < 4; pass++) {
+        // Pushing one tile off another can push it onto a third, so a dense clump needs many passes to settle;
+        // stop as soon as a whole pass finds nothing to separate.
+        for (int pass = 0; pass < MAX_OVERLAP_PASSES; pass++) {
+            boolean separated = false;
             for (int firstIndex = 0; firstIndex < numberOfTiles; firstIndex++) {
                 Tile firstTile = tiles[firstIndex];
                 boolean firstLocked = tileLockManager.isLocked(firstTile.getId(), Tile.TEMPORARY_LOCKED);
@@ -1000,15 +1007,20 @@ public class GraphPanel extends Panel
                     double deltaY = secondTile.yWorldSpace - firstTile.yWorldSpace;
                     double overlapX = minimumSeparation - Math.abs(deltaX);
                     double overlapY = minimumSeparation - Math.abs(deltaY);
-                    if (overlapX <= 0 || overlapY <= 0) {
+                    if (overlapX <= OVERLAP_EPSILON || overlapY <= OVERLAP_EPSILON) {
                         continue;
                     }
+                    separated = true;
 
                     // An unlocked tile always yields to a locked one. When both are locked (e.g. a wire has just
                     // pulled one tile onto a neighbour) the more weakly locked tile yields so tiles never overlap.
                     boolean firstCanMove = !firstLocked;
                     boolean secondCanMove = !secondLocked;
-                    if (firstLocked && secondLocked) {
+                    if (pass >= STUCK_PASSES) {
+                        // A weak tile can be trapped between stronger ones; once that is likely let everyone give way.
+                        firstCanMove = true;
+                        secondCanMove = true;
+                    } else if (firstLocked && secondLocked) {
                         int firstLevel = tileLockManager.getLockLevel(firstTile.getId());
                         int secondLevel = tileLockManager.getLockLevel(secondTile.getId());
                         firstCanMove = firstLevel <= secondLevel;
@@ -1049,11 +1061,96 @@ public class GraphPanel extends Panel
             double minimumCenter = minimumSeparation / 2;
             double maximumX = Math.max(minimumCenter, dimension.width - minimumCenter);
             double maximumY = Math.max(minimumCenter, dimension.height - minimumCenter);
+            // keep every tile on the panel: a locked tile may have been pushed out when it lost an overlap
             for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
-                if (!tileLockManager.isLocked(tiles[tileIndex].getId(), Tile.TEMPORARY_LOCKED)) {
-                    tiles[tileIndex].xWorldSpace = Math.max(minimumCenter, Math.min(maximumX, tiles[tileIndex].xWorldSpace));
-                    tiles[tileIndex].yWorldSpace = Math.max(minimumCenter, Math.min(maximumY, tiles[tileIndex].yWorldSpace));
+                tiles[tileIndex].xWorldSpace = Math.max(minimumCenter, Math.min(maximumX, tiles[tileIndex].xWorldSpace));
+                tiles[tileIndex].yWorldSpace = Math.max(minimumCenter, Math.min(maximumY, tiles[tileIndex].yWorldSpace));
+            }
+            if (!separated) {
+                return;
+            }
+        }
+        relocateOverlappingTiles(tiles, numberOfTiles, tileLockManager, dimension);
+    }
+
+    private static boolean overlaps(Tile first, Tile second, double separation) {
+        return separation - Math.abs(second.xWorldSpace - first.xWorldSpace) > OVERLAP_EPSILON
+                && separation - Math.abs(second.yWorldSpace - first.yWorldSpace) > OVERLAP_EPSILON;
+    }
+
+    private static boolean isFreeAt(Tile[] tiles, int numberOfTiles, int skipIndex, double x, double y, double separation) {
+        for (int index = 0; index < numberOfTiles; index++) {
+            if (index != skipIndex
+                    && separation - Math.abs(tiles[index].xWorldSpace - x) > OVERLAP_EPSILON
+                    && separation - Math.abs(tiles[index].yWorldSpace - y) > OVERLAP_EPSILON) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Last resort for tiles that pushing could not separate (a tile trapped between others in a dense clump): the weaker
+     * tile of each overlapping pair is moved to the nearest empty spot on the panel, searching outwards in rings.
+     */
+    private static void relocateOverlappingTiles(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension) {
+        double separation = Tile.getSegmentScale();
+        double step = separation / 2;
+        double minimumCenter = separation / 2;
+        double maximumX = Math.max(minimumCenter, dimension.width - minimumCenter);
+        double maximumY = Math.max(minimumCenter, dimension.height - minimumCenter);
+        int maximumRing = (int) (Math.max(dimension.width, dimension.height) / step) + 1;
+
+        for (int sweep = 0; sweep < numberOfTiles; sweep++) {
+            boolean moved = false;
+            for (int firstIndex = 0; firstIndex < numberOfTiles; firstIndex++) {
+                int otherIndex = -1;
+                for (int index = 0; index < numberOfTiles; index++) {
+                    if (index != firstIndex && overlaps(tiles[firstIndex], tiles[index], separation)) {
+                        otherIndex = index;
+                        break;
+                    }
                 }
+                if (otherIndex < 0) {
+                    continue;
+                }
+                int moverIndex = tileLockManager.getLockLevel(tiles[otherIndex].getId())
+                        < tileLockManager.getLockLevel(tiles[firstIndex].getId()) ? otherIndex : firstIndex;
+                Tile mover = tiles[moverIndex];
+
+                double bestX = 0;
+                double bestY = 0;
+                boolean found = false;
+                for (int ring = 1; ring <= maximumRing && !found; ring++) {
+                    double bestDistance = Double.MAX_VALUE;
+                    for (int ox = -ring; ox <= ring; ox++) {
+                        for (int oy = -ring; oy <= ring; oy++) {
+                            if (Math.max(Math.abs(ox), Math.abs(oy)) != ring) {
+                                continue;
+                            }
+                            double x = mover.xWorldSpace + ox * step;
+                            double y = mover.yWorldSpace + oy * step;
+                            if (x < minimumCenter || x > maximumX || y < minimumCenter || y > maximumY) {
+                                continue;
+                            }
+                            double distance = ox * ox + oy * oy;
+                            if (distance < bestDistance && isFreeAt(tiles, numberOfTiles, moverIndex, x, y, separation)) {
+                                bestDistance = distance;
+                                bestX = x;
+                                bestY = y;
+                                found = true;
+                            }
+                        }
+                    }
+                }
+                if (found) {
+                    mover.xWorldSpace = bestX;
+                    mover.yWorldSpace = bestY;
+                    moved = true;
+                }
+            }
+            if (!moved) {
+                return;
             }
         }
     }

@@ -92,4 +92,39 @@ public class GraphPanelCollisionTest {
         assertEquals(28, Math.abs(tiles[1].xWorldSpace - tiles[0].xWorldSpace), 0.001);
         assertEquals(0, Math.abs(tiles[1].yWorldSpace - tiles[0].yWorldSpace), 0.001);
     }
+
+    private static int countOverlaps(Tile[] tiles, double separation) {
+        int overlaps = 0;
+        for (int first = 0; first < tiles.length; first++) {
+            for (int second = first + 1; second < tiles.length; second++) {
+                double overlapX = separation - Math.abs(tiles[second].xWorldSpace - tiles[first].xWorldSpace);
+                double overlapY = separation - Math.abs(tiles[second].yWorldSpace - tiles[first].yWorldSpace);
+                if (overlapX > 0.01 && overlapY > 0.01) {
+                    overlaps++;
+                }
+            }
+        }
+        return overlaps;
+    }
+
+    /** The shape seen in the running applet: hundreds of tiles, most of them locked, packed into one clump. */
+    @Test
+    public void denseClumpOfMostlyLockedTilesEndsUpWithoutOverlaps() {
+        int count = 240;
+        java.util.Random random = new java.util.Random(7);
+        Tile[] tiles = new Tile[count];
+        LockManager lockManager = new LockManager(count);
+        for (int index = 0; index < count; index++) {
+            tiles[index] = new Tile(index, new int[] {1, 2, 3, 4}, 28);
+            tiles[index].xWorldSpace = 200 + random.nextInt(260);
+            tiles[index].yWorldSpace = 150 + random.nextInt(220);
+            if (index % 4 != 0) {
+                lockManager.updateLock(index, 1 + random.nextInt(400));
+            }
+        }
+
+        GraphPanel.resolveTileOverlaps(tiles, count, lockManager, new Dimension(643, 640));
+
+        assertEquals("overlapping pairs left", 0, countOverlaps(tiles, 28));
+    }
 }

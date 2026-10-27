@@ -35,7 +35,7 @@ Options
 
 * **Floating** - on: tiles float and are pulled together by wires; off: the frame based search (Show / Infill) places tiles on the grid.
 * **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
-* **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size.
+* **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size. In a dense clump the overlap resolver keeps pushing for up to 60 passes and then moves any tile it could not separate to the nearest free spot.
 * **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.
 * **Random**, **Id's**, **Rotate**, **Wires** - random fill, show tile ids, animate rotation, show wires.
 
