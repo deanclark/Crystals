@@ -170,6 +170,46 @@ public class FloatingLayoutDiagnosticsTest {
         }
     }
 
+    /** Ticking or clearing Large changes the tile size: the crystal must keep its cells, not start again from nothing. */
+    @Test
+    public void changingTheTileSizeKeepsTheCrystal() throws Exception {
+        GraphPanel panel = createPanel();
+        for (int iteration = 0; iteration < 1500; iteration++) {
+            panel.relax();
+        }
+        int placed = panel.placedCount();
+        int locks = panel.tileLockManager.getLocksInUse();
+        int[] column = new int[panel.getNumberOfTiles()];
+        int[] row = new int[panel.getNumberOfTiles()];
+        for (int i = 0; i < column.length; i++) {
+            column[i] = panel.cellColumn(panel.tiles[i]);
+            row[i] = panel.cellRow(panel.tiles[i]);
+        }
+        int bestBefore = panel.bestPlaced();
+
+        panel.setTileScale(15);
+        assertEquals("the same tiles are placed", placed, panel.placedCount());
+        assertEquals("and still locked", locks, panel.tileLockManager.getLocksInUse());
+        assertEquals(bestBefore, panel.bestPlaced());
+        for (int i = 0; i < column.length; i++) {
+            if (panel.isSettled(i)) {
+                assertEquals(column[i], panel.cellColumn(panel.tiles[i]));
+                assertEquals(row[i], panel.cellRow(panel.tiles[i]));
+            }
+        }
+        for (int iteration = 0; iteration < 100; iteration++) {
+            panel.relax();
+        }
+        checkCrystal(panel, placed, false);
+
+        panel.setTileScale(SCALE);
+        assertTrue(panel.placedCount() >= placed);
+        for (int iteration = 0; iteration < 100; iteration++) {
+            panel.relax();
+        }
+        checkCrystal(panel, placed, false);
+    }
+
     /** The applet's panel has no size until its window is laid out: the grid must not be anchored to that. */
     @Test
     public void crystalStaysOnTheBoardGridWhenThePanelIsSizedLate() throws Exception {
@@ -246,14 +286,14 @@ public class FloatingLayoutDiagnosticsTest {
                 Tile second = panel.tiles[b];
                 double dx = second.xWorldSpace - first.xWorldSpace;
                 double dy = second.yWorldSpace - first.yWorldSpace;
-                if (SCALE - Math.abs(dx) > 1 && SCALE - Math.abs(dy) > 1) {
+                if (Tile.getSegmentScale() - Math.abs(dx) > 1 && Tile.getSegmentScale() - Math.abs(dy) > 1) {
                     overlaps++;
                 }
                 if (!panel.isSettled(a) || !panel.isSettled(b)) {
                     continue;
                 }
-                boolean horizontal = Math.abs(Math.abs(dx) - SCALE) <= 1.5 && Math.abs(dy) <= 1.5;
-                boolean vertical = Math.abs(Math.abs(dy) - SCALE) <= 1.5 && Math.abs(dx) <= 1.5;
+                boolean horizontal = Math.abs(Math.abs(dx) - Tile.getSegmentScale()) <= 1.5 && Math.abs(dy) <= 1.5;
+                boolean vertical = Math.abs(Math.abs(dy) - Tile.getSegmentScale()) <= 1.5 && Math.abs(dx) <= 1.5;
                 if (horizontal || vertical) {
                     touching++;
                     int sideOfFirst = horizontal ? (dx > 0 ? 1 : 3) : (dy > 0 ? 2 : 0);

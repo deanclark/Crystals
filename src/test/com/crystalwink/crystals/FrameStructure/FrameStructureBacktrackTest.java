@@ -22,6 +22,19 @@ public class FrameStructureBacktrackTest {
         frame = new FrameStructure(4, 4, tiles, tiles.length);
     }
 
+    /** Frame mode builds tiles of its own; that must not change the tile size the floating mode lays its grid out with. */
+    @Test
+    public void buildingATileFromTheFrameKeepsTheDisplayedTileSize() {
+        int before = Tile.getSegmentScale();
+        Tile.setSegmentScale(28);
+        try {
+            frame.defineTileFromFrame(1, 1);
+            assertEquals(28, Tile.getSegmentScale());
+        } finally {
+            Tile.setSegmentScale(before);
+        }
+    }
+
     @Test
     public void firstDeadEndUsesTheBaseDepth() {
         assertEquals(3, frame.nextBacktrackDepth(20));

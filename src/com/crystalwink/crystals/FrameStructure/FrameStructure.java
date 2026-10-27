@@ -503,7 +503,9 @@ public class FrameStructure extends GridFrameStructure{
 
         int scale = 15;
         //Tile aTile = new Tile(id, colours);
+        int displayScale = Tile.getSegmentScale();
         Tile aTile = new Tile(id, colours, scale);
+        Tile.setSegmentScale(displayScale);   // the constructor sets the shared tile size: keep the one the panel uses
 
         return aTile;
     }

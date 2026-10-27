@@ -90,20 +90,76 @@ public class GraphPanel extends Panel
      * relax() so that they butt up rather than overlap at the new size.
      */
     public synchronized void setTileScale(int scale) {
+        // a crystal on the grid keeps its cells when the tiles change size: only the pixel positions are recomputed
+        boolean keepCrystal = hasUsableSize() && !Double.isNaN(anchoredLeft);
+        boolean anyMember = false;
+        for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+            anyMember |= crystalMember[tileIndex];
+        }
+        keepCrystal &= anyMember;
+        double oldLeft = boardLeft();
+        double oldTop = boardTop();
+        double oldScale = Tile.getSegmentScale();
+        double[] cellX = new double[numberOfTiles];
+        double[] cellY = new double[numberOfTiles];
+        for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+            cellX[tileIndex] = Math.rint((tiles[tileIndex].xWorldSpace - oldLeft) / oldScale - 0.5) + 0.5;   // snapped to the cell
+            cellY[tileIndex] = Math.rint((tiles[tileIndex].yWorldSpace - oldTop) / oldScale - 0.5) + 0.5;
+        }
+        double[][] bestX = {runBest.x, globalBest.x};
+        double[][] bestY = {runBest.y, globalBest.y};
+        double[][] bestCellX = new double[2][];
+        double[][] bestCellY = new double[2][];
+        for (int board = 0; board < 2 && keepCrystal; board++) {
+            if (bestX[board] != null) {
+                bestCellX[board] = new double[numberOfTiles];
+                bestCellY[board] = new double[numberOfTiles];
+                for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+                    bestCellX[board][tileIndex] = Math.rint((bestX[board][tileIndex] - oldLeft) / oldScale - 0.5) + 0.5;
+                    bestCellY[board][tileIndex] = Math.rint((bestY[board][tileIndex] - oldTop) / oldScale - 0.5) + 0.5;
+                }
+            }
+        }
+
         Tile.setSegmentScale(scale);
         for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
             tiles[tileIndex].rescale(scale);
-            tileLockManager.removeLock(tiles[tileIndex].getId());   // the grid cell size changed: grow a new crystal
+            if (!keepCrystal) {
+                tileLockManager.removeLock(tiles[tileIndex].getId());   // the grid cell size changed: grow a new crystal
+            }
         }
         anchoredLeft = Double.NaN;
         anchoredTop = Double.NaN;
-        java.util.Arrays.fill(crystalMember, false);
-        seedTileIndex = -1;
-        runBestPlaced = 0;
-        runBest.valid = false;
-        globalBest.valid = false;
-        searchIterations = 0;
-        runsStarted = 1;
+        if (keepCrystal) {
+            anchoredLeft = boardLeft();
+            anchoredTop = boardTop();
+            for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+                if (crystalMember[tileIndex]) {
+                    tiles[tileIndex].xWorldSpace = anchoredLeft + cellX[tileIndex] * scale;
+                    tiles[tileIndex].yWorldSpace = anchoredTop + cellY[tileIndex] * scale;
+                    tiles[tileIndex].dx = 0;
+                    tiles[tileIndex].dy = 0;
+                }
+            }
+            for (int board = 0; board < 2; board++) {
+                if (bestCellX[board] != null) {
+                    for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+                        bestX[board][tileIndex] = anchoredLeft + bestCellX[board][tileIndex] * scale;
+                        bestY[board][tileIndex] = anchoredTop + bestCellY[board][tileIndex] * scale;
+                    }
+                }
+            }
+            memory.clear();
+            resolveTileOverlaps(tiles, numberOfTiles, tileLockManager, getSize(), settledTiles());
+        } else {
+            java.util.Arrays.fill(crystalMember, false);
+            seedTileIndex = -1;
+            runBestPlaced = 0;
+            runBest.valid = false;
+            globalBest.valid = false;
+            searchIterations = 0;
+            runsStarted = 1;
+        }
         if (aFrame != null) {
             boolean large = scale >= TILE_SCALE_LARGE;
             FrameStructure.LINE_LENGTH = large ? 40 : 6;
