@@ -247,8 +247,11 @@ public class GraphPanel extends Panel
             }
         }
 
-        newTile.xWorldSpace = 10 + 380 * Math.random();
-        newTile.yWorldSpace = 10 + 380 * Math.random();
+        // scatter over the whole panel (380 x 380 until the panel has a size)
+        double spreadX = getSize().width > 40 ? getSize().width - 20 : 380;
+        double spreadY = getSize().height > 40 ? getSize().height - 20 : 380;
+        newTile.xWorldSpace = 10 + spreadX * Math.random();
+        newTile.yWorldSpace = 10 + spreadY * Math.random();
 
         // prevent duplication translation
         newTile.moved(true);
@@ -525,219 +528,18 @@ public class GraphPanel extends Panel
                 }
                  */
 
-                // pick a tile that is locked
+                // the crystal grows from a locked tile; the first one is a corner tile set in the corner of the playing area
                 if (tileLockManager.getLocksInUse() == 0) {
-                    tileLockManager.updateLock(tiles[0].getId(), Tile.LOCKED);
+                    seedCrystal();
                 }
                 aTileIndexNotId = getTileIndexFromId(tileLockManager.getRandomLockId());        // gets the tileIndex to be used in tiles[]
                 if (aTileIndexNotId < 0) {
                     repaint();
                     return;
                 }
-
-                // the random locked tile selection is very slow when many tiles.  A short list/lookup of locked tiles has been implemented in the form of LockManager.
+                growCrystal(aTileIndexNotId);
                 double dx = 0;
                 double dy = 0;
-
-                if (tiles[aTileIndexNotId] == null) {
-                    System.out.printf("relax() - primaryTile == null, This should never happen\n");
-                } else {
-                    Tile primaryTile = tiles[aTileIndexNotId];
-
-                    // select a random active Wire from a random Segment
-                    int randomSegment = (int) Math.round(3 * Math.random());
-
-                    // check for edge segment
-                    if (primaryTile.tileSegment[randomSegment].colour != 0) {
-                        // TODO check if an active wire already exists and if so check if locked and valid.
-
-                        // if not clear active wire (if one exists) and select a random wire from the segment and move the other tile in the direction of the wire
-                        Wire selectedWire = primaryTile.tileSegment[randomSegment].getRandomWire();
-                        //Wire selectedWire = primaryTile.tileSegment[randomSegment].getActiveWire();   // dc-debug may want to select any old wire
-                        if (selectedWire != null) {
-                            double lengthAdjustment = 1; //0.2;  // 20% of length
-
-                            //                if(selectedWire.wireLength > 1)
-                            //                if(selectedWire.wireLength > WIRE_LENGTH_TARGET)
-                            //                if(selectedWire.wireLength > Tile.segmentScale)
-                            //                {
-                            Tile secondaryTile = null;
-                            int secondaryTileSegment = 0;
-
-                            if (selectedWire.fromTile == aTileIndexNotId) // fromTile is primaryTile, move toTile
-                            {
-                                secondaryTile = tiles[selectedWire.toTile];
-                                secondaryTileSegment = selectedWire.toSegment;
-                            } else if (selectedWire.toTile == aTileIndexNotId) // toTile is primaryTile, move fromTile
-                            {
-                                secondaryTile = tiles[selectedWire.fromTile];
-                                secondaryTileSegment = selectedWire.fromSegment;
-                            } else {
-                                System.out.printf("relax() - ** BAD WIRE **\n");
-                            }
-
-                            if (!tileLockManager.isLocked(secondaryTile.getId())) {
-
-                                // X&Y Relative to tile orientation
-                                double relativePriX = primaryTile.xWorldSpace;
-                                double relativePriY = primaryTile.yWorldSpace;
-                                double relativeSecX = secondaryTile.xWorldSpace;
-                                double relativeSecY = secondaryTile.yWorldSpace;
-
-                                // orientate secondary tile to mate with primary
-                                //secondaryTile.setOrientation( (randomSegment <= 1) ? (randomSegment + 2) : (randomSegment - 2));
-                                int primaryOrientation = randomSegment + primaryTile.getOrientation();  // i.e. 2+1 = 3
-                                primaryOrientation = (primaryOrientation < 0) ? (primaryOrientation + 4) : primaryOrientation; // i.e. na    // todo - replace with MAX/MIN
-                                primaryOrientation = (primaryOrientation > 3) ? (primaryOrientation - 4) : primaryOrientation;  // i.e. ns
-    //                                int secondaryOrientation = secondaryTileSegment + 2;  // 0+2=2
-
-                                int secondaryOrientation = 0;
-                                switch (secondaryTileSegment) {
-                                    case 0:
-                                        secondaryOrientation = secondaryTileSegment + primaryOrientation + 2;
-                                        break;
-                                    case 1:
-                                        secondaryOrientation = secondaryTileSegment + primaryOrientation + 1;
-                                        break;
-                                    case 2:
-                                        secondaryOrientation = secondaryTileSegment + primaryOrientation;
-                                        break;
-                                    case 3:
-                                        switch (primaryOrientation) {
-                                            case 0:
-                                                secondaryOrientation = secondaryTileSegment + 3;
-                                                break;
-                                            case 1:
-                                                secondaryOrientation = secondaryTileSegment;
-                                                break;
-                                            case 2:
-                                                secondaryOrientation = secondaryTileSegment + 1;
-                                                break;
-                                            case 3:
-                                                secondaryOrientation = secondaryTileSegment + 2;
-                                                break;
-                                        }
-                                        break;
-                                }
-    //                                int secondaryOrientation = (primaryOrientation + 2) - secondaryTileSegment;  // 2+3+2=7
-                                secondaryOrientation = (secondaryOrientation < 0) ? (secondaryOrientation + 4) : secondaryOrientation; // na = 7
-                                secondaryOrientation = (secondaryOrientation > 3) ? (secondaryOrientation - 4) : secondaryOrientation; // 7-4=3
-                                secondaryTile.setOrientation(secondaryOrientation);
-    //                                secondaryTile.getOrientation() = Math.abs(primaryOrientation - secondaryOrientation + 2); // 3-3+2= 2
-    //                                if(secondaryTile.getOrientation() < 0)
-    //                                    secondaryTile.setOrientation(secondaryTile.getOrientation() + 4; // -1+4 = 3
-
-
-                                if (((primaryOrientation) != (secondaryTile.getOrientation() + 2)) && (primaryOrientation != (secondaryTile.getOrientation() - 2))) //                                if( ((primaryOrientation) != (secondaryTileSegment + secondaryTile.getOrientation() + 2)) && (primaryOrientation != (secondaryTileSegment + secondaryTile.getOrientation() - 2)) )
-                                {
-                                    if ((Trace.debugLevel & Trace.DEBUG_RELAX2) == Trace.DEBUG_RELAX2) {
-                                        System.out.printf("relax() - segment %d(prim) tile_Orientation %d(prim) relativeOrient %d(Prim), segment %d(sec) tileOrientation %d(sec)\n", randomSegment, primaryTile.getOrientation(), primaryOrientation, secondaryTileSegment, secondaryTile.getOrientation());
-                                        System.out.printf("relax() - **** Relative Orient %d(prim), %d(sec)\n", primaryOrientation, secondaryOrientation);
-                                    }
-                                }
-
-                                relativePriX += rebalanceX(randomSegment, primaryTile.getOrientation());     // relative to orientation
-                                relativePriY += rebalanceY(randomSegment, primaryTile.getOrientation());     // relative to orientation
-                                relativeSecX += rebalanceX(secondaryTileSegment, secondaryTile.getOrientation());     // relative to orientation
-                                relativeSecY += rebalanceY(secondaryTileSegment, secondaryTile.getOrientation());     // relative to orientation
-
-                                dx = relativePriX - relativeSecX;
-                                dy = relativePriY - relativeSecY;
-
-                                if (true == false) {
-                                    secondaryTile.dx = dx * lengthAdjustment;      // TODO LOOK HERE
-                                    secondaryTile.dy = dy * lengthAdjustment;
-                                } else {
-                                    //tileLockManager.updateLock(secondaryTile.getId(), Tile.TEMPORARY_LOCKED);
-                                    //secondaryTile.lock = Tile.TEMPORARY_LOCKED;
-                                    if ((Trace.debugLevel & Trace.DEBUG_RELAX2) == Trace.DEBUG_RELAX2) {
-                                        System.out.printf("dx = %f, dy %f sec orientation %d\n", dx, dy, secondaryTile.getOrientation());
-                                    }
-
-                                    // TODO - adjuct relative to orientation
-                                    if (relativePriX > relativeSecX) {
-                                        dx = relativePriX - relativeSecX;
-                                        secondaryTile.dx += dx * lengthAdjustment;
-                                    } else {
-                                        dx = relativeSecX - relativePriX;
-                                        secondaryTile.dx -= dx * lengthAdjustment;
-                                    }
-
-                                    if (relativePriY > relativeSecY) {
-                                        dy = relativePriY - relativeSecY;
-                                        secondaryTile.dy += dy * lengthAdjustment;
-                                    } else {
-                                        dy = relativeSecY - relativePriY;
-                                        secondaryTile.dy -= dy * lengthAdjustment;
-                                    }
-
-                                } // true == true
-                                secondaryTile.tileSegment[randomSegment].setActiveWire(selectedWire);
-
-
-                                // lock init to a vaulue relative to the number of tiles already locked, should be (nTiles - locksInUse)factorial (but for now use sqr)
-                                tileLockManager.updateLock(secondaryTile.getId(), (getNumberOfTiles() - tileLockManager.getLocksInUse()) * (getNumberOfTiles() - tileLockManager.getLocksInUse()));
-    //                                tileLockManager.updateLock(secondaryTile.getId(), getNumberOfTiles() - tileLockManager.getLocksInUse());
-                                secondaryTile.lock = tileLockManager.getLockLevel(secondaryTile.getId());
-
-
-                                if ((Trace.debugLevel & Trace.DEBUG_RELAX1) == Trace.DEBUG_RELAX1) {
-                                    System.out.printf("relax() - tile_%d(prim), randomSegment_%d(prim), tile_%d(sec), randomSegment_%d(sec) moved by x:%f y:%f\n", aTileIndexNotId, randomSegment, secondaryTile.getId(), selectedWire.toSegment, secondaryTile.dx, secondaryTile.dy);
-                                }
-
-                                // move locked Tile at this point here as it will not be moved later
-                                secondaryTile.xWorldSpace += secondaryTile.dx;
-                                secondaryTile.yWorldSpace += secondaryTile.dy;
-                                secondaryTile.dx = 0;
-                                secondaryTile.dy = 0;
-
-
-                                //System.out.printf("TODO - Check if the secondaryTile neighbours are a match if not release the secondaryTile\n");
-                                // TODO - Check if the secondaryTile neighbours are a match if not release the secondaryTile
-                                // first update all wire lengths
-                                for (int eachSegment = 0; eachSegment < 4; eachSegment++) {
-                                    // check each wire for a link between these two segments
-                                    Wire secondaryWire = secondaryTile.tileSegment[eachSegment].getActiveWire();
-                                    //for(int ii=0; ii<secondaryTile.tileSegment[eachSegment].nConnectedWires; ii++) {
-                                    //Wire secondaryWire = secondaryTile.tileSegment[eachSegment].connectedWires[ii];
-
-                                    if (secondaryWire != null) {
-                                        Tile neighbouringTile = null;
-                                        if (secondaryTile == tiles[secondaryWire.fromTile]) {
-                                            if (tileLockManager.isLocked(tiles[selectedWire.toTile].getId())) {
-                                                neighbouringTile = tiles[secondaryWire.toTile];
-
-                                                // TODO - check touching segments for match
-                                                if (secondaryTile.tileSegment[randomSegment].colour == neighbouringTile.tileSegment[secondaryWire.toSegment].colour) // match
-                                                //secondaryTile.lock += Tile.TEMPORARY_LOCKED; // increase tile fix duration if a neighbour edge match
-                                                {
-                                                    tileLockManager.increaseLock(secondaryTile.getId(), Tile.TEMPORARY_LOCKED);
-                                                }
-                                            }
-                                        } else if (secondaryTile == tiles[secondaryWire.toTile]) {
-                                            if (tileLockManager.isLocked(tiles[selectedWire.fromTile].getId())) {
-                                                neighbouringTile = tiles[secondaryWire.fromTile];
-
-                                                // TODO - check touching segments for match
-                                                if (secondaryTile.tileSegment[randomSegment].colour == neighbouringTile.tileSegment[secondaryWire.fromSegment].colour) {
-                                                    tileLockManager.increaseLock(secondaryTile.getId(), Tile.TEMPORARY_LOCKED);
-                                                }
-                                            }
-                                        } else {
-                                            // no match
-                                            tileLockManager.removeLock(secondaryTile.getId());
-                                            secondaryTile.tileSegment[eachSegment].setActiveWire(null);
-
-                                        }
-                                    }
-                                }
-                            } // not locked
-                            else {
-                                // should wire be inactive if we are here?
-                                }
-                        } // selectedWire != null
-                    } // edge colour
-                } // primaryTile == null
 
                 int lockedNeighbours = 0;
                 for (int segmentIndex = 0; segmentIndex < 4; segmentIndex++) {
@@ -904,6 +706,7 @@ public class GraphPanel extends Panel
                     //System.out.printf("tileIndex=%d, dx=%f, dy=%f\n", tileIndex, eachTile.dx, eachTile.dy);
                     // move neighbour tile nearer if not locked or if only just locked
                     if (!tileLockManager.isLocked(eachTile.getId(), Tile.TEMPORARY_LOCKED)) {     // Allow TEMPORARY_LOCKED this move
+                        biasTowardsBorder(eachTile);
                         //if (!eachTile.locked() || (eachTile.lock == Tile.TEMPORARY_LOCKED)) {     // Allow TEMPORARY_LOCKED this move
                         // TODO - Kills animation
                         //eachTile.xWorldSpace += Math.max(-5, Math.min(5, eachTile.dx));
@@ -981,8 +784,254 @@ public class GraphPanel extends Panel
         }
     }  // relax
 
+    // ---- the square playing area -------------------------------------------------------------------------------------
+    // Tiles are laid on a grid of Tile.getSegmentScale() cells, columns x rows (about square), centred on the panel.
+    // Cell (0,0) is the top-left corner. World sides are numbered 0 top, 1 right, 2 bottom, 3 left; segment s of a tile
+    // with orientation o faces world side (s + o) % 4.
+    private static final int[] SIDE_DC = {0, 1, 0, -1};
+    private static final int[] SIDE_DR = {-1, 0, 1, 0};
+
+    int boardColumns() {
+        return Math.max(1, (int) Math.ceil(Math.sqrt(Math.max(1, numberOfTiles))));
+    }
+
+    int boardRows() {
+        return Math.max(1, (numberOfTiles + boardColumns() - 1) / boardColumns());
+    }
+
+    double boardLeft() {
+        return Math.max(0, (getSize().width - boardColumns() * Tile.getSegmentScale()) / 2.0);
+    }
+
+    double boardTop() {
+        return Math.max(0, (getSize().height - boardRows() * Tile.getSegmentScale()) / 2.0);
+    }
+
+    double cellCentreX(int column) {
+        return boardLeft() + (column + 0.5) * Tile.getSegmentScale();
+    }
+
+    double cellCentreY(int row) {
+        return boardTop() + (row + 0.5) * Tile.getSegmentScale();
+    }
+
+    int cellColumn(Tile tile) {
+        return (int) Math.round((tile.xWorldSpace - boardLeft()) / Tile.getSegmentScale() - 0.5);
+    }
+
+    int cellRow(Tile tile) {
+        return (int) Math.round((tile.yWorldSpace - boardTop()) / Tile.getSegmentScale() - 0.5);
+    }
+
+    boolean isCellInBoard(int column, int row) {
+        return column >= 0 && column < boardColumns() && row >= 0 && row < boardRows();
+    }
+
+    /** Index of a tile sitting on (or overlapping) the spot, ignoring one tile, or -1. */
+    private int tileNear(double x, double y, int ignoreIndex) {
+        double limit = Tile.getSegmentScale() * 0.75;
+        for (int index = 0; index < numberOfTiles; index++) {
+            if (index != ignoreIndex && Math.abs(tiles[index].xWorldSpace - x) < limit && Math.abs(tiles[index].yWorldSpace - y) < limit) {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    /** Colour a tile shows on a world side when it has the given orientation. */
+    private static int colourOnSide(Tile tile, int orientation, int side) {
+        return tile.tileSegment[(((side - orientation) % 4) + 4) % 4].colour;
+    }
+
+    /**
+     * A tile belongs in a cell when every side facing outside the playing area is the outside (grey) colour and no
+     * side facing another cell is: so corner tiles only fit corners and edge tiles only the border.
+     */
+    private boolean tileFitsCell(Tile tile, int orientation, int column, int row) {
+        for (int side = 0; side < 4; side++) {
+            boolean neighbourInside = isCellInBoard(column + SIDE_DC[side], row + SIDE_DR[side]);
+            boolean grey = colourOnSide(tile, orientation, side) == 0;
+            if (neighbourInside == grey) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Orientation that turns the tile's grey segments to face outwards, or -1 when it has no suitable turn: with one
+     * grey segment it faces outwardSide, with two (a corner tile) they face outwardSide and the side after it.
+     */
+    private static int orientationFacingOutwards(Tile tile, int outwardSide) {
+        int count = 0;
+        for (int segment = 0; segment < 4; segment++) {
+            count += tile.tileSegment[segment].colour == 0 ? 1 : 0;
+        }
+        for (int orientation = 0; orientation < 4; orientation++) {
+            boolean greyOnOutward = colourOnSide(tile, orientation, outwardSide) == 0;
+            boolean greyOnNext = colourOnSide(tile, orientation, (outwardSide + 1) % 4) == 0;
+            if (count == 1 && greyOnOutward) {
+                return orientation;
+            }
+            if (count == 2 && greyOnOutward && greyOnNext) {
+                return orientation;
+            }
+        }
+        return -1;
+    }
+
+    /** Lock a corner tile into the top-left cell so the crystal has a fixed anchor on the playing area's grid. */
+    private void seedCrystal() {
+        int seed = 0;
+        int orientation = 0;
+        for (int index = 0; index < numberOfTiles; index++) {
+            int facing = tiles[index].getEdgeCount() == 2 ? orientationFacingOutwards(tiles[index], 3) : -1;   // greys left and top
+            if (facing >= 0) {
+                seed = index;
+                orientation = facing;
+                break;
+            }
+        }
+        Tile seedTile = tiles[seed];
+        if (tileLockManager.isLocked(seedTile.getId())) {
+            return;
+        }
+        seedTile.setOrientation(orientation);
+        seedTile.xWorldSpace = cellCentreX(0);
+        seedTile.yWorldSpace = cellCentreY(0);
+        seedTile.dx = 0;
+        seedTile.dy = 0;
+        // Tile.LOCKED is -1, which the lock decay would release at once: use the strongest level any tile gets
+        tileLockManager.updateLock(seedTile.getId(), numberOfTiles * numberOfTiles);
+        seedTile.lock = tileLockManager.getLockLevel(seedTile.getId());
+    }
+
+    /**
+     * One growth step: take a random matching wire from a locked tile and put the tile at its other end into the cell
+     * beside it, turned so the two matching segments touch. Nothing happens when that cell is outside the playing area,
+     * already holds a locked tile, or the tile does not suit the cell (e.g. a grey edge that would face a neighbour).
+     */
+    private void growCrystal(int primaryIndex) {
+        Tile primary = tiles[primaryIndex];
+        int primarySegment = (int) (Math.random() * 4);
+        if (primary.tileSegment[primarySegment].colour == 0) {
+            return;
+        }
+        Wire wire = primary.tileSegment[primarySegment].getRandomWire();
+        if (wire == null) {
+            return;
+        }
+        int secondaryIndex;
+        int secondarySegment;
+        if (wire.fromTile == primaryIndex) {
+            secondaryIndex = wire.toTile;
+            secondarySegment = wire.toSegment;
+        } else if (wire.toTile == primaryIndex) {
+            secondaryIndex = wire.fromTile;
+            secondarySegment = wire.fromSegment;
+        } else {
+            return;
+        }
+        Tile secondary = tiles[secondaryIndex];
+        if (secondaryIndex == primaryIndex || tileLockManager.isLocked(secondary.getId())) {
+            return;
+        }
+
+        int side = (primarySegment + primary.getOrientation()) % 4;                   // side of the primary that is touched
+        int secondaryOrientation = (((side + 2 - secondarySegment) % 4) + 4) % 4;     // turns the secondary's segment to face back
+        int column = cellColumn(primary) + SIDE_DC[side];
+        int row = cellRow(primary) + SIDE_DR[side];
+        if (!isCellInBoard(column, row) || !tileFitsCell(secondary, secondaryOrientation, column, row)) {
+            return;
+        }
+        double x = cellCentreX(column);
+        double y = cellCentreY(row);
+        int occupant = tileNear(x, y, secondaryIndex);
+        if (occupant >= 0 && tileLockManager.isLocked(tiles[occupant].getId())) {
+            return;
+        }
+
+        secondary.setOrientation(secondaryOrientation);
+        secondary.xWorldSpace = x;
+        secondary.yWorldSpace = y;
+        secondary.dx = 0;
+        secondary.dy = 0;
+        primary.tileSegment[primarySegment].setActiveWire(wire);
+        secondary.tileSegment[secondarySegment].setActiveWire(wire);
+
+        // lock init to a value relative to the number of tiles already locked
+        int remaining = getNumberOfTiles() - tileLockManager.getLocksInUse();
+        tileLockManager.updateLock(secondary.getId(), remaining * remaining);
+        // a neighbour that already matches on another side makes the tile stay fixed for longer
+        for (int neighbourSide = 0; neighbourSide < 4; neighbourSide++) {
+            int neighbour = tileNear(x + SIDE_DC[neighbourSide] * Tile.getSegmentScale(), y + SIDE_DR[neighbourSide] * Tile.getSegmentScale(), secondaryIndex);
+            if (neighbour >= 0 && neighbour != primaryIndex && tileLockManager.isLocked(tiles[neighbour].getId())
+                    && colourOnSide(secondary, secondaryOrientation, neighbourSide)
+                    == colourOnSide(tiles[neighbour], tiles[neighbour].getOrientation(), (neighbourSide + 2) % 4)) {
+                tileLockManager.increaseLock(secondary.getId(), Tile.TEMPORARY_LOCKED);
+            }
+        }
+        secondary.lock = tileLockManager.getLockLevel(secondary.getId());
+    }
+
+    private static final double BORDER_PULL = 3;        // pixels per iteration
+    private static final double BORDER_BAND = 2;         // tiles stop being pulled this many tile widths from their target
+
+    /**
+     * Unlocked corner tiles drift towards a corner of the playing area and edge tiles towards a side, turned so their
+     * grey edges face outwards. Corners and sides are shared out by tile id so they do not all crowd one place, and a
+     * tile is only pulled until it is within a band near its target so that it never fights the overlap resolver.
+     * Interior tiles are left alone.
+     */
+    private void biasTowardsBorder(Tile tile) {
+        int greyEdges = tile.getEdgeCount();
+        if (greyEdges < 1) {
+            return;
+        }
+        double scale = Tile.getSegmentScale();
+        double minX = cellCentreX(0);
+        double maxX = cellCentreX(boardColumns() - 1);
+        double minY = cellCentreY(0);
+        double maxY = cellCentreY(boardRows() - 1);
+        int share = tile.getId() % 4;
+        double targetX;
+        double targetY;
+        int outwardSide;
+        if (greyEdges >= 2) {
+            // 0 top left, 1 top right, 2 bottom right, 3 bottom left
+            targetX = share == 0 || share == 3 ? minX : maxX;
+            targetY = share == 0 || share == 1 ? minY : maxY;
+            outwardSide = share == 0 ? 3 : share == 1 ? 0 : share == 2 ? 1 : 2;   // first of the two outward sides, clockwise
+        } else {
+            // 0 top, 1 right, 2 bottom, 3 left: stay level with where the tile is, on the chosen side
+            outwardSide = share;
+            targetX = Math.max(minX, Math.min(maxX, tile.xWorldSpace));
+            targetY = Math.max(minY, Math.min(maxY, tile.yWorldSpace));
+            if (share == 0) {
+                targetY = minY;
+            } else if (share == 2) {
+                targetY = maxY;
+            } else if (share == 3) {
+                targetX = minX;
+            } else {
+                targetX = maxX;
+            }
+        }
+        int orientation = orientationFacingOutwards(tile, outwardSide);
+        if (orientation >= 0) {
+            tile.setOrientation(orientation);
+        }
+        double vx = targetX - tile.xWorldSpace;
+        double vy = targetY - tile.yWorldSpace;
+        double distance = Math.hypot(vx, vy);
+        if (distance > BORDER_BAND * scale) {
+            double step = Math.min(distance, BORDER_PULL);
+            tile.dx += vx / distance * step;
+            tile.dy += vy / distance * step;
+        }
+    }
+
     private static final int MAX_OVERLAP_PASSES = 60;
-    private static final int STUCK_PASSES = 20;
     private static final double OVERLAP_EPSILON = 0.001;
 
     static void resolveTileOverlaps(Tile[] tiles, int numberOfTiles, LockManager tileLockManager, Dimension dimension) {
@@ -991,18 +1040,24 @@ public class GraphPanel extends Panel
             return;
         }
 
+        // lock state does not change while overlaps are resolved, and looking it up is a linear scan: read it once
+        boolean[] locked = new boolean[numberOfTiles];
+        int[] lockLevel = new int[numberOfTiles];
+        for (int tileIndex = 0; tileIndex < numberOfTiles; tileIndex++) {
+            locked[tileIndex] = tileLockManager.isLocked(tiles[tileIndex].getId(), Tile.TEMPORARY_LOCKED);
+            lockLevel[tileIndex] = tileLockManager.getLockLevel(tiles[tileIndex].getId());
+        }
+
         // Pushing one tile off another can push it onto a third, so a dense clump needs many passes to settle;
         // stop as soon as a whole pass finds nothing to separate.
         for (int pass = 0; pass < MAX_OVERLAP_PASSES; pass++) {
             boolean separated = false;
             for (int firstIndex = 0; firstIndex < numberOfTiles; firstIndex++) {
                 Tile firstTile = tiles[firstIndex];
-                boolean firstLocked = tileLockManager.isLocked(firstTile.getId(), Tile.TEMPORARY_LOCKED);
+                boolean firstLocked = locked[firstIndex];
 
                 for (int secondIndex = firstIndex + 1; secondIndex < numberOfTiles; secondIndex++) {
                     Tile secondTile = tiles[secondIndex];
-                    boolean secondLocked = tileLockManager.isLocked(secondTile.getId(), Tile.TEMPORARY_LOCKED);
-
                     double deltaX = secondTile.xWorldSpace - firstTile.xWorldSpace;
                     double deltaY = secondTile.yWorldSpace - firstTile.yWorldSpace;
                     double overlapX = minimumSeparation - Math.abs(deltaX);
@@ -1010,19 +1065,16 @@ public class GraphPanel extends Panel
                     if (overlapX <= OVERLAP_EPSILON || overlapY <= OVERLAP_EPSILON) {
                         continue;
                     }
+                    boolean secondLocked = locked[secondIndex];
                     separated = true;
 
                     // An unlocked tile always yields to a locked one. When both are locked (e.g. a wire has just
                     // pulled one tile onto a neighbour) the more weakly locked tile yields so tiles never overlap.
                     boolean firstCanMove = !firstLocked;
                     boolean secondCanMove = !secondLocked;
-                    if (pass >= STUCK_PASSES) {
-                        // A weak tile can be trapped between stronger ones; once that is likely let everyone give way.
-                        firstCanMove = true;
-                        secondCanMove = true;
-                    } else if (firstLocked && secondLocked) {
-                        int firstLevel = tileLockManager.getLockLevel(firstTile.getId());
-                        int secondLevel = tileLockManager.getLockLevel(secondTile.getId());
+                    if (firstLocked && secondLocked) {
+                        int firstLevel = lockLevel[firstIndex];
+                        int secondLevel = lockLevel[secondIndex];
                         firstCanMove = firstLevel <= secondLevel;
                         secondCanMove = secondLevel <= firstLevel;
                     }

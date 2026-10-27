@@ -34,6 +34,11 @@ Options
 -----------
 
 * **Floating** - on: tiles float and are pulled together by wires; off: the frame based search (Show / Infill) places tiles on the grid.
+  In floating mode the tiles grow a crystal on the grid of a square playing area (about sqrt(n) x sqrt(n) cells, centred on the panel):
+  a corner tile is locked into the top-left corner first; each step takes a random matching wire from a locked tile and places the tile at
+  its other end in the neighbouring cell, turned so the matching edges touch. A tile is only placed where it fits the square: grey (outside)
+  edges must face outside it and nowhere else, so corner tiles only fit corners and edge tiles only the border. Unlocked corner and edge
+  tiles drift towards a corner or side of the square (shared out by tile id) with their grey edges facing outwards. Tiles never overlap.
 * **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
 * **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size. In a dense clump the overlap resolver keeps pushing for up to 60 passes and then moves any tile it could not separate to the nearest free spot.
 * **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.
