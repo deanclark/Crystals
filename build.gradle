@@ -40,6 +40,11 @@ application {
     mainClass = 'com.crystalwink.crystals.GraphPanel.GraphPanel'
 }
 
+// ./gradlew run -Dcrystals.import=best-boards/best-230-....txt   (and -Dcrystals.boards=<directory>)
+tasks.named('run') {
+    systemProperties System.properties.findAll { it.key.toString().startsWith('crystals.') }
+}
+
 tasks.named('jar') {
     manifest {
         attributes 'Main-Class': application.mainClass.get()

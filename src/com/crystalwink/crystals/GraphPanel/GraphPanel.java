@@ -547,6 +547,15 @@ public class GraphPanel extends Panel
                  */
 
                 // the crystal grows from a locked tile; the first one is a corner tile set in the corner of the playing area
+                if (tileLockManager.getLocksInUse() == 0 && pendingImport != null) {
+                    try {
+                        importBoard(pendingImport);
+                        System.out.println("Imported " + pendingImport.toAbsolutePath());
+                    } catch (java.io.IOException | RuntimeException problem) {
+                        System.err.println("Could not import " + pendingImport + ": " + problem);
+                    }
+                    pendingImport = null;
+                }
                 if (tileLockManager.getLocksInUse() == 0) {
                     seedCrystal();
                 }
@@ -1349,6 +1358,7 @@ public class GraphPanel extends Panel
     private void saveBest(int placedBefore) {
         capture(runBest, placedBefore, true);
         runBestPlaced = placedBefore;
+        recordIfBest(runBest);
     }
 
     private void apply(Board board) {
@@ -1395,6 +1405,7 @@ public class GraphPanel extends Panel
         } else if (runBest.valid && (!globalBest.valid || runBest.placed > globalBest.placed)) {
             globalBest.copyFrom(runBest);
         }
+        recordIfBest(globalBest);
     }
 
     /** The run is over: keep its best board if it is the best so far, then clear the crystal for a fresh run. */
@@ -1432,6 +1443,11 @@ public class GraphPanel extends Panel
         if (placed > runBestPlaced) {
             runBestPlaced = placed;
             runBest.valid = false;   // the current board is the best; it is only copied when a worsening move leaves it
+            if (placed > savedPlaced() && placed >= minimumRecorded()
+                    && (placed == numberOfTiles || searchIterations - lastRecordIteration >= RECORD_INTERVAL)) {
+                capture(scratch, placed, false);
+                recordIfBest(scratch);
+            }
         }
         if (!annealingEnabled || searchIterations <= GREEDY_ITERATIONS) {
             temperature = 0;
@@ -1450,6 +1466,111 @@ public class GraphPanel extends Panel
             restoreRunBest();
         }
         temperature = START_TEMPERATURE * (1 - step / (double) CYCLE_ITERATIONS);
+    }
+
+    // ---- keeping the best boards ---------------------------------------------------------------------------------------
+    // Every board that beats the best one on file is written to a text file (see BoardRecord), so that a good result
+    // - and one day a complete board, i.e. a solution - is never lost when the window is closed. Only strictly better
+    // boards are written, so a session leaves at most a few dozen small files. A file can be loaded to seed a later run.
+
+    /** Directory the best boards are written to (-Dcrystals.boards=...). */
+    static java.nio.file.Path boardDirectory = java.nio.file.Paths.get(System.getProperty("crystals.boards", "best-boards"));
+    static boolean recordingEnabled = true;
+    private static final double MIN_RECORDED_FRACTION = 0.85;   // boards below this share of the tiles are not worth a file
+    private static final int RECORD_INTERVAL = 100;             // iterations between files for a board still being improved
+    private int savedPlaced = -1;                                // most tiles on any file in the directory (read once)
+    private int lastRecordIteration;
+    java.nio.file.Path lastRecordFile;
+    private final Board scratch = new Board();
+    private java.nio.file.Path pendingImport = System.getProperty("crystals.import") == null
+            ? null : java.nio.file.Paths.get(System.getProperty("crystals.import"));
+
+    private int savedPlaced() {
+        if (savedPlaced < 0) {
+            savedPlaced = BoardRecord.bestSaved(boardDirectory);
+        }
+        return savedPlaced;
+    }
+
+    private int minimumRecorded() {
+        return (int) Math.ceil(numberOfTiles * MIN_RECORDED_FRACTION);
+    }
+
+    private BoardRecord recordOf(Board board) {
+        java.util.ArrayList<BoardRecord.Entry> entries = new java.util.ArrayList<>();
+        for (int index = 0; index < numberOfTiles; index++) {
+            if (!board.member[index]) {
+                continue;
+            }
+            Tile tile = tiles[index];
+            int column = (int) Math.round((board.x[index] - boardLeft()) / Tile.getSegmentScale() - 0.5);
+            int row = (int) Math.round((board.y[index] - boardTop()) / Tile.getSegmentScale() - 0.5);
+            int[] colours = new int[4];
+            for (int side = 0; side < 4; side++) {
+                colours[side] = colourOnSide(tile, board.orientation[index], side);
+            }
+            entries.add(new BoardRecord.Entry(tile.getId(), column, row, board.orientation[index], colours));
+        }
+        entries.sort((a, b) -> a.row != b.row ? Integer.compare(a.row, b.row) : Integer.compare(a.column, b.column));
+        return new BoardRecord(numberOfTiles, boardColumns(), boardRows(), entries);
+    }
+
+    /** Write the board to a file when it has more tiles than any board on file. */
+    private void recordIfBest(Board board) {
+        if (!recordingEnabled || !board.valid || board.placed <= savedPlaced() || board.placed < minimumRecorded()) {
+            return;
+        }
+        try {
+            lastRecordFile = recordOf(board).save(boardDirectory);
+            savedPlaced = board.placed;
+            lastRecordIteration = searchIterations;
+            System.out.printf("Saved %d of %d tiles to %s%n", board.placed, numberOfTiles, lastRecordFile.toAbsolutePath());
+        } catch (java.io.IOException | RuntimeException problem) {
+            System.err.println("Could not save the board: " + problem);
+            lastRecordIteration = searchIterations;   // do not retry every iteration
+        }
+    }
+
+    /**
+     * Load a board saved earlier: its tiles are put on their cells and locked, and the search carries on from it (it also
+     * counts as the best board of the run). Needs the panel to have its size, as the cells are placed on the grid.
+     */
+    void importBoard(java.nio.file.Path file) throws java.io.IOException {
+        BoardRecord record = BoardRecord.read(file);
+        if (!hasUsableSize()) {
+            throw new IllegalStateException("the panel has no size yet");
+        }
+        if (record.tiles != numberOfTiles || record.columns != boardColumns() || record.rows != boardRows()) {
+            throw new IllegalArgumentException("the board file is for " + record.tiles + " tiles on " + record.columns + "x"
+                    + record.rows + ", this panel has " + numberOfTiles + " on " + boardColumns() + "x" + boardRows());
+        }
+        anchoredLeft = Double.NaN;
+        anchoredTop = Double.NaN;
+        anchoredLeft = boardLeft();
+        anchoredTop = boardTop();
+        capture(scratch, 0, false);
+        java.util.Arrays.fill(scratch.member, false);
+        java.util.Arrays.fill(scratch.lock, 0);
+        seedTileIndex = -1;
+        for (BoardRecord.Entry entry : record.entries) {
+            int index = getTileIndexFromId(entry.tileId);
+            if (index < 0 || scratch.member[index]) {
+                throw new IllegalArgumentException("tile " + entry.tileId + " is unknown or listed twice");
+            }
+            scratch.member[index] = true;
+            scratch.x[index] = cellCentreX(entry.column);
+            scratch.y[index] = cellCentreY(entry.row);
+            scratch.orientation[index] = entry.orientation;
+            scratch.lock[index] = numberOfTiles;
+            if (entry.column == 0 && entry.row == 0) {
+                seedTileIndex = index;
+            }
+        }
+        scratch.placed = record.placed();
+        apply(scratch);
+        runBest.copyFrom(scratch);
+        runBestPlaced = scratch.placed;
+        savedPlaced = Math.max(savedPlaced(), scratch.placed);   // already on file
     }
 
     /** Chance that a hole search follows the fill order (border ring, then rows) rather than picking a cell at random. */

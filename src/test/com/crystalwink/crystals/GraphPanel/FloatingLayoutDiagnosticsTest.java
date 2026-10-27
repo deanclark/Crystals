@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.crystalwink.crystals.Crystal;
@@ -15,6 +16,11 @@ import com.crystalwink.crystalscommon.Tile.Tile;
  * Crystal is an Applet and cannot be constructed headless, so an instance is allocated without running its constructor.
  */
 public class FloatingLayoutDiagnosticsTest {
+    @BeforeClass
+    public static void keepBestBoardsOutOfTheWorkingDirectory() throws Exception {
+        GraphPanel.boardDirectory = java.nio.file.Files.createTempDirectory("crystals-boards");
+    }
+
     static final int SCALE = 28;
     static final int WIDTH = 643;
     static final int HEIGHT = 640;
@@ -123,6 +129,47 @@ public class FloatingLayoutDiagnosticsTest {
         }
     }
 
+    /**
+     * Boards that beat the best on file are written as they are found, and a file loads back onto a fresh panel as the
+     * same valid board (same tiles on the same cells, turned the same way), ready for the search to carry on from.
+     */
+    @Test
+    public void bestBoardsAreSavedAndCanBeImportedOntoAFreshPanel() throws Exception {
+        java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("crystals-boards");
+        java.nio.file.Path savedDirectory = GraphPanel.boardDirectory;
+        GraphPanel.boardDirectory = directory;
+        try {
+            GraphPanel panel = createPanel();
+            for (int iteration = 0; iteration < 2500; iteration++) {
+                panel.relax();
+            }
+            int onFile = BoardRecord.bestSaved(directory);
+            assertTrue("a good board should be on file: " + onFile, onFile >= 220);
+            assertTrue("the file is reported", panel.lastRecordFile != null && java.nio.file.Files.exists(panel.lastRecordFile));
+
+            BoardRecord record = BoardRecord.read(panel.lastRecordFile);
+            assertEquals(onFile, record.placed());
+
+            GraphPanel fresh = createPanel();
+            fresh.importBoard(panel.lastRecordFile);
+            assertEquals(record.placed(), fresh.placedCount());
+            for (BoardRecord.Entry entry : record.entries) {
+                Tile tile = fresh.tiles[fresh.getTileIndexFromId(entry.tileId)];
+                assertEquals(entry.column, fresh.cellColumn(tile));
+                assertEquals(entry.row, fresh.cellRow(tile));
+                assertEquals(entry.orientation, tile.getOrientation());
+            }
+            checkCrystal(fresh, record.placed(), false);
+            for (int iteration = 0; iteration < 100; iteration++) {
+                fresh.relax();
+            }
+            assertTrue("the search carries on from the imported board", fresh.placedCount() >= record.placed());
+            checkCrystal(fresh, record.placed(), false);
+        } finally {
+            GraphPanel.boardDirectory = savedDirectory;
+        }
+    }
+
     /** The applet's panel has no size until its window is laid out: the grid must not be anchored to that. */
     @Test
     public void crystalStaysOnTheBoardGridWhenThePanelIsSizedLate() throws Exception {
@@ -157,6 +204,10 @@ public class FloatingLayoutDiagnosticsTest {
     }
 
     private void checkCrystal(GraphPanel panel, int minimumPlaced) {
+        checkCrystal(panel, minimumPlaced, true);
+    }
+
+    private void checkCrystal(GraphPanel panel, int minimumPlaced, boolean expectSwaps) {
         int n = panel.getNumberOfTiles();
         int placed = 0;
         int cornersPlaced = 0;
@@ -232,6 +283,6 @@ public class FloatingLayoutDiagnosticsTest {
         assertTrue("the crystal should be one connected piece: " + largest + " of " + placed, largest >= placed * 0.9);
         assertEquals("all four corner tiles should be in the corners", 4, cornersPlaced);
         assertTrue("edge tiles should be on the border: " + edgesPlaced, edgesPlaced >= 40);
-        assertTrue("holes should have been filled by unlocking neighbours", panel.holesSwapped > 0);
+        assertTrue("holes should have been filled by unlocking neighbours", !expectSwaps || panel.holesSwapped > 0);
     }
 }

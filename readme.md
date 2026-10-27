@@ -87,13 +87,22 @@ Use the Gradle wrapper from the repository root:
 
 The desktop application jar is written to `build/libs/`. `CrystalsCommon.jar`, containing only the `crystalscommon` package, is written to `build/android-libs/` and compiled for Java 11 bytecode (`options.release = 11`). `uTurnAnd/libs/CrystalsCommon.jar` must be rebuilt from here and copied across whenever the `crystalscommon` package changes. Gradle itself runs on JDK 17 or newer; this project was verified with JDK 25.
 
-All 25 JUnit tests pass (`./gradlew test`). The old empty Eclipse stubs (`fail("Not yet implemented")` and tests with no assertions) were removed; the remaining tests cover tile drawing, collision, backtracking and the floating-mode crystal (`FloatingLayoutDiagnosticsTest`, which runs the real 256 tiles headless).
+All 30 JUnit tests pass (`./gradlew test`). The old empty Eclipse stubs (`fail("Not yet implemented")` and tests with no assertions) were removed; the remaining tests cover tile drawing, collision, backtracking and the floating-mode crystal (`FloatingLayoutDiagnosticsTest`, which runs the real 256 tiles headless).
+
+## Keeping the best boards
+
+Every board that has more tiles than any board already on file is written to `best-boards/best-<placed>-<yyyyMMdd-HHmmss>.txt` (only boards of at
+least 85% of the tiles, so a session leaves a few dozen small files). A complete 256-tile board - a solution - is written the moment it appears.
+The file is plain text: `tiles`, `columns`, `rows`, `placed`, `saved`, then one line per placed tile (`tile-id column row orientation top right
+bottom left`, the last four being the edge colours as shown) and a grid of tile ids by cell for reading. Class `BoardRecord`.
+
+* `./gradlew run -Dcrystals.import=best-boards/best-230-....txt` starts the crystal from a saved board and the search carries on from it.
+* `-Dcrystals.boards=<directory>` changes where boards are written (default `best-boards` in the working directory). Only boards beating the
+  best file already in that directory are saved. The directory is not git-ignored: commit the files worth keeping.
 
 ## Future work
 
-* **Save the best results to a file.** Capture the best-fitting boards found (tile id, cell, orientation, and the score) in a file that can be
-  re-imported later, to seed a run with a known good board or just to view it again (for example `best-<placed>-<date>.txt` written whenever a
-  run beats the best so far, plus an Import action that loads one as the starting crystal or displays it read-only).
+* An in-app Import action (and a read-only viewer) for saved boards; today a board is imported at start-up with `-Dcrystals.import=` (see below).
 * A deeper search to place more than about 233 of the 256 tiles (more repair attempts per iteration, unlocking three neighbours only when hot,
   restarts that perturb the best board instead of clearing it).
 * Keep free tiles out of the status text at the bottom right of the panel.
