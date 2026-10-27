@@ -21,8 +21,9 @@ import java.util.List;
  * rows=16
  * placed=234
  * saved=2026-10-27T15:30:12
- * # tile-id column row orientation top right bottom left      (edge colours as the board shows them)
- * 12 0 0 3 0 5 7 0
+ * # tile-id column row orientation top right bottom left hint     (edge colours as the board shows them)
+ * 139 8 7 1 6 6 12 18 1       (hint = 1: permanent hint tile, always listed first)
+ * 12 0 0 3 0 5 7 0 0
  * ...
  * # tile ids by cell (. = empty)
  * #  12  45 ...
@@ -36,8 +37,15 @@ public final class BoardRecord {
         public final int row;
         public final int orientation;
         public final int[] colours;   // top, right, bottom, left
+        /** A permanent hint tile: locked in place for good when the board is loaded, and listed first in the file. */
+        public final boolean hint;
 
         public Entry(int tileId, int column, int row, int orientation, int[] colours) {
+            this(tileId, column, row, orientation, colours, false);
+        }
+
+        public Entry(int tileId, int column, int row, int orientation, int[] colours, boolean hint) {
+            this.hint = hint;
             this.tileId = tileId;
             this.column = column;
             this.row = row;
@@ -52,6 +60,9 @@ public final class BoardRecord {
 
     /** Boards with fewer than this share of the tiles are not worth a file. */
     public static double minimumFraction = 0.85;
+
+    /** Frame mode fills without gaps but struggles to get past its hint tile, so far fewer tiles are worth a file. */
+    public static int minimumFrameTiles = 110;
 
     public final String mode;
     public final int tiles;
@@ -80,18 +91,29 @@ public final class BoardRecord {
         text.append("rows=").append(rows).append('\n');
         text.append("placed=").append(placed()).append('\n');
         text.append("saved=").append(when.truncatedTo(java.time.temporal.ChronoUnit.SECONDS)).append('\n');
-        text.append("# tile-id column row orientation top right bottom left\n");
+        text.append("# tile-id column row orientation top right bottom left hint\n");
         int[][] idAt = new int[rows][columns];
         for (int[] line : idAt) {
             java.util.Arrays.fill(line, -1);
         }
+        List<Entry> hintsFirst = new ArrayList<>();
         for (Entry entry : entries) {
+            if (entry.hint) {
+                hintsFirst.add(entry);
+            }
+        }
+        for (Entry entry : entries) {
+            if (!entry.hint) {
+                hintsFirst.add(entry);
+            }
+        }
+        for (Entry entry : hintsFirst) {
             text.append(entry.tileId).append(' ').append(entry.column).append(' ').append(entry.row).append(' ')
                     .append(entry.orientation);
             for (int colour : entry.colours) {
                 text.append(' ').append(colour);
             }
-            text.append('\n');
+            text.append(' ').append(entry.hint ? 1 : 0).append('\n');
             idAt[entry.row][entry.column] = entry.tileId;
         }
         text.append("# tile ids by cell (. = empty)\n");
@@ -137,8 +159,9 @@ public final class BoardRecord {
             for (int side = 0; side < 4 && 4 + side < field.length; side++) {
                 colours[side] = Integer.parseInt(field[4 + side]);
             }
+            boolean hint = field.length > 8 && field[8].equals("1");
             entries.add(new Entry(Integer.parseInt(field[0]), Integer.parseInt(field[1]), Integer.parseInt(field[2]),
-                    Integer.parseInt(field[3]), colours));
+                    Integer.parseInt(field[3]), colours, hint));
         }
         if (tiles < 0 || columns <= 0 || rows <= 0) {
             throw new IllegalArgumentException("board file lacks tiles/columns/rows");

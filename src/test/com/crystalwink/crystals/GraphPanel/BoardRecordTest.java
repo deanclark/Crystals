@@ -42,6 +42,22 @@ public class BoardRecordTest {
     }
 
     @Test
+    public void hintTilesAreWrittenFirstAndComeBackAsHints() {
+        List<BoardRecord.Entry> entries = new ArrayList<>();
+        entries.add(new BoardRecord.Entry(12, 0, 0, 3, new int[] {0, 5, 7, 0}));
+        entries.add(new BoardRecord.Entry(139, 1, 1, 1, new int[] {6, 6, 12, 18}, true));
+        BoardRecord record = new BoardRecord(BoardRecord.FRAME, 4, 2, 2, entries);
+        String text = record.format(LocalDateTime.of(2026, 10, 27, 15, 30, 12));
+        assertTrue(text, text.contains("# tile-id column row orientation top right bottom left hint"));
+        assertTrue(text, text.indexOf("139 1 1 1 6 6 12 18 1") < text.indexOf("12 0 0 3 0 5 7 0 0"));
+        BoardRecord copy = BoardRecord.parse(text);
+        assertEquals(139, copy.entries.get(0).tileId);
+        assertTrue(copy.entries.get(0).hint);
+        assertTrue(!copy.entries.get(1).hint);
+        assertTrue("files without the hint column still load", !BoardRecord.parse("tiles=4\ncolumns=2\nrows=2\n1 0 0 0 1 2 3 4\n").entries.get(0).hint);
+    }
+
+    @Test
     public void textShowsTheCellGridForReading() {
         String text = sample().format(LocalDateTime.of(2026, 10, 27, 15, 30, 12));
         assertTrue(text, text.contains("placed=3"));

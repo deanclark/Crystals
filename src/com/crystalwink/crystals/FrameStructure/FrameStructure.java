@@ -91,7 +91,7 @@ public class FrameStructure extends GridFrameStructure{
         lastDeadEndPlaced = tilesPlaced;
 
         int depth = BACK_TRACK_HIGH + BACK_TRACK_GROWTH * consecutiveDeadEnds;
-        int deepestAllowed = Math.max(BACK_TRACK_LOW, tilesPlaced - startHistoryIndex - 1);
+        int deepestAllowed = Math.max(BACK_TRACK_LOW, tilesPlaced - Math.max(startHistoryIndex + 1, hintEntries.size()));
         return Math.max(BACK_TRACK_LOW, Math.min(depth, deepestAllowed));
     }
 
@@ -559,6 +559,14 @@ public class FrameStructure extends GridFrameStructure{
      *                      false fills each segment with its colour
      */
     public void drawFrame(Graphics offScreenGraphics, Color palate[], boolean wireframeTile) {
+        drawFrame(offScreenGraphics, palate, wireframeTile, false);
+    }
+
+    /**
+     * @param showIds write the tile id in each verified tile (needs cells of at least MIN_CELL_FOR_IDS pixels: the Large setting);
+     *                permanent hint tiles are written in red
+     */
+    public void drawFrame(Graphics offScreenGraphics, Color palate[], boolean wireframeTile, boolean showIds) {
         //boolean runFast = true;// = false; //
 
         final int nPolyPoints = 5;
@@ -696,7 +704,7 @@ public class FrameStructure extends GridFrameStructure{
                     int backtrackCount = nextBacktrackDepth(lasttilesPlaced);
                     for (int ii = lasttilesPlaced; ii > 0; ii--) {
 //                        if(ii > (lasttilesPlaced - (lasttilesPlaced/10)) )
-                        if (ii > (lasttilesPlaced - backtrackCount) && ii > startHistoryIndex + 1) {
+                        if (ii > (lasttilesPlaced - backtrackCount) && ii > Math.max(startHistoryIndex + 1, hintEntries.size())) {
                             resetTile(tilePlacementOrder2[ii - 1].ROW_INDEX, tilePlacementOrder2[ii - 1].COL_INDEX, CrystalGlobals.LOCKED, false);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
                         }                            //resetTile(tilePlacementOrder[ii-1][ROW_INDEX], tilePlacementOrder[ii-1][COL_INDEX], CrystalGlobals.LOCKED);  // @todo - release associated tileIdAlreadyFound before reseting a locked segment
 
@@ -790,7 +798,7 @@ public class FrameStructure extends GridFrameStructure{
                 int backtrackCount = nextBacktrackDepth(lasttilesPlaced);
                 for (int ii = lasttilesPlaced; ii > 0; ii--) {
                     // never undo the hint tile(s) and never reach below the start of the placement history
-                    if (ii > (lasttilesPlaced - backtrackCount) && ii > startHistoryIndex + 1) {
+                    if (ii > (lasttilesPlaced - backtrackCount) && ii > Math.max(startHistoryIndex + 1, hintEntries.size())) {
                         // reset history
                         // @todo - only if the newly selected tile is not the same as the previously rejected tile
                         for (int tileIdTemp = 0; tileIdTemp < CrystalGlobals.MAX_TILES; tileIdTemp++) {
@@ -891,7 +899,7 @@ public class FrameStructure extends GridFrameStructure{
             }
         }
 
-        drawPlacedTiles(offScreenGraphics, palate, wireframeTile);
+        drawPlacedTiles(offScreenGraphics, palate, wireframeTile, showIds);
 
         // Show frequency spectrum carrier wave
         if (!asPoly) {
@@ -953,7 +961,9 @@ public class FrameStructure extends GridFrameStructure{
      * Draw every cell of the frame that has at least one edge colour assigned as a tile made of four
      * triangular segments (top, right, bottom, left).
      */
-    private void drawPlacedTiles(Graphics graphics, Color palate[], boolean wireframeTile) {
+    private static final int MIN_CELL_FOR_IDS = 16;
+
+    private void drawPlacedTiles(Graphics graphics, Color palate[], boolean wireframeTile, boolean showIds) {
         int[] edges = new int[4];
         for (int row = 0; row < VerticalRowCells; row++) {
             for (int col = 0; col < HorizontalColumnCells; col++) {
@@ -962,6 +972,14 @@ public class FrameStructure extends GridFrameStructure{
                 edges[2] = frameArray[2 * row + 2][col];       // bottom
                 edges[3] = frameArray[2 * row + 1][col];       // left
                 drawCell(graphics, palate, edges, col * CELL_SCALE, row * CELL_SCALE, CELL_SCALE, wireframeTile);
+            }
+        }
+        if (showIds && CELL_SCALE >= MIN_CELL_FOR_IDS) {
+            for (BoardRecord.Entry entry : verifiedEntries) {
+                graphics.setColor(isHintCell(entry.column, entry.row) ? java.awt.Color.RED : java.awt.Color.BLACK);
+                String id = String.valueOf(entry.tileId);
+                int width = graphics.getFontMetrics().stringWidth(id);
+                graphics.drawString(id, entry.column * CELL_SCALE + (CELL_SCALE - width) / 2, entry.row * CELL_SCALE + CELL_SCALE / 2 + 4);
             }
         }
     }
@@ -1184,6 +1202,7 @@ public class FrameStructure extends GridFrameStructure{
 //            tilePlacementOrder[gridCellFullyPlacedGet()][ROW_INDEX] = rowX;
 //            tilePlacementOrder[gridCellFullyPlacedGet()][COL_INDEX] = colY;
             gridCellFullyPlacedUp();
+            rememberHint(tileId, colY - 1, rowX - 1, orientation, cellColours(rowX, colY));
 
             if (!isGridCellLocked(rowX, colY)) {
                 System.out.println("hintToFrame() - ***ERROR** Known Hint Tile " + tileId + " is NOT locked to row:" + rowX + " colY:" + colY);
@@ -1331,9 +1350,43 @@ public class FrameStructure extends GridFrameStructure{
     private int savedPlaced = -1;
     public java.nio.file.Path lastRecordFile;
 
-    /** The tiles found by the latest verifyFrame(), one entry per tile (0-based column and row). */
+    /** Permanent hint tiles (never backtracked), in the order they were put in. */
+    private final java.util.ArrayList<BoardRecord.Entry> hintEntries = new java.util.ArrayList<>();
+
+    private void rememberHint(int tileId, int column, int row, int orientation, int[] colours) {
+        if (!isHintCell(column, row)) {
+            hintEntries.add(new BoardRecord.Entry(tileId, column, row, orientation, colours, true));
+        }
+    }
+
+    private boolean isHintCell(int column, int row) {
+        for (BoardRecord.Entry hint : hintEntries) {
+            if (hint.column == column && hint.row == row) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** The number of permanent hint tiles. */
+    public int hintCount() {
+        return hintEntries.size();
+    }
+
+    /** The tiles found by the latest verifyFrame(), one entry per tile (0-based column and row), hint tiles first. */
     public BoardRecord verifiedBoard() {
-        return new BoardRecord(BoardRecord.FRAME, nTilesLocal, HorizontalColumnCells, VerticalRowCells, new java.util.ArrayList<>(verifiedEntries));
+        java.util.ArrayList<BoardRecord.Entry> ordered = new java.util.ArrayList<>();
+        for (BoardRecord.Entry entry : verifiedEntries) {
+            if (isHintCell(entry.column, entry.row)) {
+                ordered.add(new BoardRecord.Entry(entry.tileId, entry.column, entry.row, entry.orientation, entry.colours, true));
+            }
+        }
+        for (BoardRecord.Entry entry : verifiedEntries) {
+            if (!isHintCell(entry.column, entry.row)) {
+                ordered.add(entry);
+            }
+        }
+        return new BoardRecord(BoardRecord.FRAME, nTilesLocal, HorizontalColumnCells, VerticalRowCells, ordered);
     }
 
     private int[] cellColours(int row, int col) {
@@ -1347,7 +1400,7 @@ public class FrameStructure extends GridFrameStructure{
     /** Write the verified tiles to a file when they are more than any frame already on file (and a worthwhile share of the tiles). */
     private void recordIfBest() {
         int placed = verifiedEntries.size();
-        if (!GraphPanel.recordingEnabled || nTilesLocal == 0 || placed < Math.ceil(nTilesLocal * BoardRecord.minimumFraction)) {
+        if (!GraphPanel.recordingEnabled || nTilesLocal == 0 || placed < BoardRecord.minimumFrameTiles) {
             return;
         }
         if (savedPlaced < 0) {
@@ -1376,17 +1429,33 @@ public class FrameStructure extends GridFrameStructure{
     }
 
     /**
-     * Put the tiles of a saved board into the frame as locked hint tiles (their edges are set from the tile's real colours),
-     * in the order of the file. Entries that do not fit - unknown or repeated tile, cell outside the frame, an edge that
+     * Put the tiles of a saved board into the frame (their edges are set from the tile's real colours). Hint tiles go first
+     * and are locked for good (LOCKED_HINT: the search never undoes them); the other tiles are locked like tiles the search
+     * placed itself, so it may still backtrack them. Entries that do not fit - unknown or repeated tile, cell outside the frame, an edge that
      * disagrees with a neighbour already in - are skipped. Returns the number of tiles put in.
      */
     public int importBoard(BoardRecord record) {
         final int[] sides = {CrystalGlobals.SEGMENT_INDEX_ABOVE, CrystalGlobals.SEGMENT_INDEX_RIGHT,
             CrystalGlobals.SEGMENT_INDEX_BELOW, CrystalGlobals.SEGMENT_INDEX_LEFT};
         int imported = 0;
+        java.util.List<BoardRecord.Entry> hintsFirst = new java.util.ArrayList<>();
         for (BoardRecord.Entry entry : record.entries) {
+            if (entry.hint) {
+                hintsFirst.add(entry);
+            }
+        }
+        for (BoardRecord.Entry entry : record.entries) {
+            if (!entry.hint) {
+                hintsFirst.add(entry);
+            }
+        }
+        for (BoardRecord.Entry entry : hintsFirst) {
             int row = entry.row + 1;
             int col = entry.column + 1;
+            if (isHintCell(entry.column, entry.row)) {   // the built-in hint tile is already in
+                imported++;
+                continue;
+            }
             Tile tile = tileWithId(entry.tileId);
             if (tile == null || row < 1 || row > VerticalRowCells || col < 1 || col > HorizontalColumnCells
                     || tileIdAlreadyFound[entry.tileId]) {
@@ -1407,9 +1476,12 @@ public class FrameStructure extends GridFrameStructure{
             }
             for (int side = 0; side < 4; side++) {
                 setColour(getGridIndex(CrystalGlobals.ROW_SELECTION, row, col, sides[side]),
-                        getGridIndex(CrystalGlobals.COL_SELECTION, row, col, sides[side]), colour[side], CrystalGlobals.LOCKED_HINT);
+                        getGridIndex(CrystalGlobals.COL_SELECTION, row, col, sides[side]), colour[side], entry.hint ? CrystalGlobals.LOCKED_HINT : CrystalGlobals.LOCKED);
             }
             tileIdAlreadyFound[entry.tileId] = true;
+            if (entry.hint) {
+                rememberHint(entry.tileId, entry.column, entry.row, entry.orientation, colour);
+            }
             if (tilePlacementOrder2[gridCellFullyPlacedGet()] == null) {
                 tilePlacementOrder2[gridCellFullyPlacedGet()] = new TilePlacementInfo(row, col, entry.tileId);
             } else {

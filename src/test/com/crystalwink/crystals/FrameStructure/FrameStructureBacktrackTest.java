@@ -45,9 +45,9 @@ public class FrameStructureBacktrackTest {
 
         java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("frame-boards");
         java.nio.file.Path savedDirectory = GraphPanel.boardDirectory;
-        double savedFraction = BoardRecord.minimumFraction;
+        int savedMinimum = BoardRecord.minimumFrameTiles;
         GraphPanel.boardDirectory = directory;
-        BoardRecord.minimumFraction = 0;
+        BoardRecord.minimumFrameTiles = 0;
         try {
             small.verifyFrame();
             BoardRecord found = small.verifiedBoard();
@@ -64,7 +64,49 @@ public class FrameStructureBacktrackTest {
             assertEquals(BoardRecord.FRAME, BoardRecord.read(small.lastRecordFile).mode);
         } finally {
             GraphPanel.boardDirectory = savedDirectory;
-            BoardRecord.minimumFraction = savedFraction;
+            BoardRecord.minimumFrameTiles = savedMinimum;
+        }
+    }
+
+    /**
+     * Hint tiles in a saved board are imported first whatever their place in the file, stay permanent (counted by hintCount,
+     * so the backtracking never reaches them) and are written first, flagged as hints, in the frame files.
+     */
+    @Test
+    public void hintTilesImportFirstStayPermanentAndAreSavedFirst() throws Exception {
+        Tile[] tiles = new Tile[16];
+        for (int tileIndex = 0; tileIndex < 14; tileIndex++) {
+            tiles[tileIndex] = new Tile(tileIndex + 1, new int[] {0, 1, 2, 3}, 1);
+        }
+        tiles[14] = new Tile(16, new int[] {4, 5, 6, 7}, 1);
+        tiles[15] = new Tile(17, new int[] {8, 9, 10, 11}, 1);
+        FrameStructure small = new FrameStructure(4, 4, tiles, tiles.length);
+
+        java.util.List<BoardRecord.Entry> wanted = new java.util.ArrayList<>();
+        wanted.add(new BoardRecord.Entry(17, 2, 2, 0, new int[] {8, 9, 10, 11}));
+        wanted.add(new BoardRecord.Entry(16, 1, 1, 1, new int[] {7, 4, 5, 6}, true));
+        assertEquals(2, small.importBoard(new BoardRecord(BoardRecord.FRAME, 16, 4, 4, wanted)));
+        assertEquals(1, small.hintCount());
+
+        java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("frame-hint-boards");
+        java.nio.file.Path savedDirectory = GraphPanel.boardDirectory;
+        int savedMinimum = BoardRecord.minimumFrameTiles;
+        GraphPanel.boardDirectory = directory;
+        BoardRecord.minimumFrameTiles = 0;
+        try {
+            small.verifyFrame();
+            BoardRecord found = small.verifiedBoard();
+            assertEquals(16, found.entries.get(0).tileId);
+            assertTrue(found.entries.get(0).hint);
+            for (int index = 1; index < found.entries.size(); index++) {
+                assertTrue(!found.entries.get(index).hint);
+            }
+            BoardRecord saved = BoardRecord.read(small.lastRecordFile);
+            assertEquals(16, saved.entries.get(0).tileId);
+            assertTrue(saved.entries.get(0).hint);
+        } finally {
+            GraphPanel.boardDirectory = savedDirectory;
+            BoardRecord.minimumFrameTiles = savedMinimum;
         }
     }
 

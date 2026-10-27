@@ -2148,7 +2148,7 @@ public class GraphPanel extends Panel
                 importIntoFrame(pendingFrameImport);
                 pendingFrameImport = null;
             }
-            Crystal.panel.aFrame.drawFrame(offScreenGraphics, palate, wireframeTileModeCheckbox);          // display frame based implementation
+            Crystal.panel.aFrame.drawFrame(offScreenGraphics, palate, wireframeTileModeCheckbox, showTileIdCheckbox);          // display frame based implementation
             
         }
         
