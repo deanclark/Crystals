@@ -71,6 +71,25 @@ public class FloatingLayoutDiagnosticsTest {
         checkCrystal(panel);
     }
 
+    /**
+     * The local search accepts swaps that lose tiles to get out of dead ends, remembers the best board and puts it back.
+     * After a few cooling cycles the best board must beat what plain repair reaches (about 222-225), and restoring it must
+     * give a board that is just as valid: all neighbours match, no overlaps, locks equal to the placed tiles.
+     */
+    @Test
+    public void localSearchFindsABetterBoardAndRestoringItIsValid() throws Exception {
+        GraphPanel panel = createPanel();
+        for (int iteration = 0; iteration < 5000; iteration++) {
+            panel.relax();
+        }
+        assertTrue("some swaps that lose tiles should have been accepted", panel.swapsWorsening > 0);
+        assertTrue("the best board should beat plain repair: " + panel.bestPlaced, panel.bestPlaced >= 226);
+
+        panel.restoreBest();
+        assertEquals("the best board is back", panel.bestPlaced, panel.placedCount());
+        checkCrystal(panel, panel.bestPlaced);
+    }
+
     /** The applet's panel has no size until its window is laid out: the grid must not be anchored to that. */
     @Test
     public void crystalStaysOnTheBoardGridWhenThePanelIsSizedLate() throws Exception {
@@ -101,6 +120,10 @@ public class FloatingLayoutDiagnosticsTest {
     }
 
     private void checkCrystal(GraphPanel panel) {
+        checkCrystal(panel, 200);
+    }
+
+    private void checkCrystal(GraphPanel panel, int minimumPlaced) {
         int n = panel.getNumberOfTiles();
         int placed = 0;
         int cornersPlaced = 0;
@@ -164,7 +187,7 @@ public class FloatingLayoutDiagnosticsTest {
                 largest = Math.max(largest, ++size[find(group, i)]);
             }
         }
-        System.out.printf("after 1500 iterations: %d of %d tiles placed (%d connected), %d touching pairs, %d mismatched, overlaps %d, "
+        System.out.printf("after the run: %d of %d tiles placed (%d connected), %d touching pairs, %d mismatched, overlaps %d, "
                 + "corners placed %d, edge tiles placed %d, tiles unlocked to fill holes: %d swaps, %d plain fills%n",
                 placed, n, largest, touching, mismatches, overlaps, cornersPlaced, edgesPlaced, panel.holesSwapped, panel.holesFilled);
 
@@ -172,7 +195,7 @@ public class FloatingLayoutDiagnosticsTest {
         assertEquals("tiles must not overlap", 0, overlaps);
         assertEquals("neighbouring crystal tiles must match edge to edge (" + touching + " pairs)", 0, mismatches);
         assertEquals("every crystal tile suits its cell (grey edges outside only)", 0, misfits);
-        assertTrue("most of the board should be placed: " + placed, placed >= 200);
+        assertTrue("most of the board should be placed: " + placed, placed >= minimumPlaced);
         assertTrue("the crystal should be one connected piece: " + largest + " of " + placed, largest >= placed * 0.9);
         assertEquals("all four corner tiles should be in the corners", 4, cornersPlaced);
         assertTrue("edge tiles should be on the border: " + edgesPlaced, edgesPlaced >= 40);

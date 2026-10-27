@@ -48,6 +48,10 @@ Options
   are dealt with early. Crystal tiles keep their lock until a repair unlocks them, so "Locks in Use" equals the tiles placed (also shown as
   "Placed: n of 256"). About 215 of the 256 tiles are placed within 100 iterations and 220-230 after a few hundred, with every neighbouring
   pair matching; the rest are left waiting around the board.
+  Once plain repair stops improving (after 300 iterations) a local search takes over (simulated annealing): swaps that lose one or two tiles are
+  accepted with a probability that falls as the temperature cools, the cycle restarts every 1500 iterations, the best board seen is remembered and
+  put back at the end of each cycle if the current one is worse. So the number of tiles placed can dip while it is exploring; the status text
+  shows "Placed: n (best b)". This lifts the board from about 222-225 placed to about 228-233.
 * **Wireframe** - on: placed tiles are drawn as outlined coloured segments; off: segments are filled with their colour (both modes).
 * **Large** - tile display size (15 or 28 px tiles, 6 or 40 px frame cells). Tiles butt up rather than overlap at either size. In a dense clump the overlap resolver keeps pushing for up to 60 passes and then moves any tile it could not separate to the nearest free spot.
 * **Active** - floating mode only: let the elastic wires of unlocked tiles pull on their neighbours.

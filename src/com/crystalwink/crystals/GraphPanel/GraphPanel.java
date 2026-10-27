@@ -99,6 +99,9 @@ public class GraphPanel extends Panel
         anchoredTop = Double.NaN;
         java.util.Arrays.fill(crystalMember, false);
         seedTileIndex = -1;
+        bestPlaced = 0;
+        bestSaved = false;
+        searchIterations = 0;
         if (aFrame != null) {
             boolean large = scale >= TILE_SCALE_LARGE;
             FrameStructure.LINE_LENGTH = large ? 40 : 6;
@@ -554,6 +557,7 @@ public class GraphPanel extends Panel
                 for (int attempt = 0; attempt < HOLE_ATTEMPTS; attempt++) {
                     repairHole();
                 }
+                advanceSearch();
                 double dx = 0;
                 double dy = 0;
 
@@ -1243,6 +1247,113 @@ public class GraphPanel extends Panel
         return found;
     }
 
+    // ---- local search --------------------------------------------------------------------------------------------------
+    // The repair above never makes the board worse, so it gets stuck once every remaining hole is boxed in. To get out,
+    // swaps that lose a tile or two are accepted with a probability that shrinks as a temperature falls (simulated
+    // annealing), the schedule is reheated every epoch, and the best board seen is remembered and put back whenever an
+    // epoch ends worse than it.
+
+    private static final int GREEDY_ITERATIONS = 300;       // plain repair first: it gets ~215 tiles in a hundred iterations
+    private static final int EPOCH_ITERATIONS = 1500;        // one cooling cycle
+    private static final double START_TEMPERATURE = 0.3;     // a swap losing one tile is then accepted 3.6% of the time, 0 when cold
+    private static final double MIN_TEMPERATURE = 0.05;
+    private static final int MAX_WORSENING = 2;              // most tiles one accepted swap may lose
+    static boolean annealingEnabled = true;
+
+    private int searchIterations;
+    private double temperature;
+    int swapsWorsening;     // accepted swaps that lost tiles
+    int bestPlaced;         // most tiles placed so far
+    private boolean bestSaved;
+    private double[] bestX;
+    private double[] bestY;
+    private int[] bestOrientation;
+    private int[] bestLock;          // lock level, 0 when not locked
+    private boolean[] bestMember;
+
+    int placedCount() {
+        int placed = 0;
+        for (int index = 0; index < numberOfTiles; index++) {
+            placed += isSettled(index) ? 1 : 0;
+        }
+        return placed;
+    }
+
+    /**
+     * Remember the board as it was before the move being decided: the current tiles, with the tiles the move touched put
+     * back to what they were (the undo memory holds exactly that).
+     */
+    private void saveBest(int placedBefore) {
+        if (bestX == null || bestX.length != numberOfTiles) {
+            bestX = new double[numberOfTiles];
+            bestY = new double[numberOfTiles];
+            bestOrientation = new int[numberOfTiles];
+            bestLock = new int[numberOfTiles];
+            bestMember = new boolean[numberOfTiles];
+        }
+        for (int index = 0; index < numberOfTiles; index++) {
+            Tile tile = tiles[index];
+            bestX[index] = tile.xWorldSpace;
+            bestY[index] = tile.yWorldSpace;
+            bestOrientation[index] = tile.getOrientation();
+            bestMember[index] = crystalMember[index];
+            bestLock[index] = tileLockManager.isLocked(tile.getId()) ? Math.max(1, tileLockManager.getLockLevel(tile.getId())) : 0;
+        }
+        for (TileMemory entry : memory) {
+            bestX[entry.index] = entry.x;
+            bestY[entry.index] = entry.y;
+            bestOrientation[entry.index] = entry.orientation;
+            bestMember[entry.index] = entry.wasMember;
+            bestLock[entry.index] = entry.wasLocked ? Math.max(1, entry.lockLevel) : 0;
+        }
+        bestPlaced = placedBefore;
+        bestSaved = true;
+    }
+
+    /** Put the best board seen back, if the current one is worse. */
+    void restoreBest() {
+        if (!bestSaved || placedCount() >= bestPlaced) {
+            return;
+        }
+        for (int index = 0; index < numberOfTiles; index++) {
+            Tile tile = tiles[index];
+            if (bestMember[index]) {
+                crystalMember[index] = true;
+                tile.xWorldSpace = bestX[index];
+                tile.yWorldSpace = bestY[index];
+                tile.dx = 0;
+                tile.dy = 0;
+                tile.setOrientation(bestOrientation[index]);
+                tileLockManager.updateLock(tile.getId(), Math.max(1, bestLock[index]));
+                tile.lock = tileLockManager.getLockLevel(tile.getId());
+            } else if (crystalMember[index]) {
+                evictTile(index);
+            }
+        }
+        memory.clear();
+        // free tiles may be wandering over cells that are crystal again: push them out now rather than on the next step
+        resolveTileOverlaps(tiles, numberOfTiles, tileLockManager, getSize(), settledTiles());
+    }
+
+    /** Called once per iteration after the repairs: note a new best board and move the temperature along its schedule. */
+    private void advanceSearch() {
+        searchIterations++;
+        int placed = placedCount();
+        if (placed > bestPlaced) {
+            bestPlaced = placed;
+            bestSaved = false;
+        }
+        if (!annealingEnabled || searchIterations <= GREEDY_ITERATIONS) {
+            temperature = 0;
+            return;
+        }
+        int step = (searchIterations - GREEDY_ITERATIONS) % EPOCH_ITERATIONS;
+        if (step == 0) {
+            restoreBest();
+        }
+        temperature = START_TEMPERATURE * (1 - step / (double) EPOCH_ITERATIONS);
+    }
+
     /** Chance that a hole search follows the fill order (border ring, then rows) rather than picking a cell at random. */
     private static final double ORDERED_PICK = 0.75;
 
@@ -1378,7 +1489,18 @@ public class GraphPanel extends Panel
                     gained++;
                 }
             }
-            if (gained > 0 || (gained == 0 && Math.random() < PLATEAU_ACCEPT)) {
+            boolean accept = gained > 0 || (gained == 0 && Math.random() < PLATEAU_ACCEPT);
+            if (!accept && gained < 0 && gained >= -MAX_WORSENING && temperature > MIN_TEMPERATURE
+                    && Math.random() < Math.exp(gained / temperature)) {
+                // worse for now, to get out of a dead end: first make sure the best board so far can be put back
+                int placedBefore = placedCount() - gained;
+                if (placedBefore > bestPlaced || (placedBefore == bestPlaced && !bestSaved)) {
+                    saveBest(placedBefore);
+                }
+                accept = true;
+                swapsWorsening++;
+            }
+            if (accept) {
                 memory.clear();
                 holesSwapped++;
                 return true;
@@ -1768,7 +1890,7 @@ public class GraphPanel extends Panel
                 placedTiles += crystalMember[tileIndex] ? 1 : 0;
             }
             offScreenGraphics.drawString("Placed: ", dimension.width - 140, dimension.height - 40);
-            offScreenGraphics.drawString(placedTiles + " of " + numberOfTiles, dimension.width - 85, dimension.height - 40);
+            offScreenGraphics.drawString(placedTiles + " (best " + Math.max(bestPlaced, placedTiles) + ")", dimension.width - 90, dimension.height - 40);
         }
 
         // display frame
